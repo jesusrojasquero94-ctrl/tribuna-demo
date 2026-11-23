@@ -4,236 +4,252 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tribuna, elige tu puesto viendo el estadio</title>
-<meta name="description" content="Demo de concepto de Qiu Agency: boletería para estadios venezolanos donde eliges tu asiento sobre el mapa y ves el terreno desde ahí antes de pagar.">
+<meta name="description" content="Demo de concepto de Qiu Agency: boletería inmersiva para estadios venezolanos. Eliges tu asiento sobre el estadio y ves el terreno desde ahí antes de pagar.">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#070D1A">
 <meta property="og:title" content="Tribuna, elige tu puesto viendo el estadio">
 <meta property="og:description" content="Demo de concepto de Qiu Agency para estadios venezolanos.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E1F3D'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23FF8A1F' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
-<link rel="preload" as="image" href="aereo.webp">
+<link rel="preload" as="image" href="aereo-w.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --cal:#F2F5F1; --papel:#FFFFFF; --tinta:#0E1F3D; --tinta-suave:#4A5873;
-  --noche:#0B1830; --grama:#1E7B45; --grama-osc:#176337; --arcilla:#B5673A;
-  --silla:#3A76D0; --silla-alta:#2C5DAA; --palco:#8DB3EE;
-  --poste:#FF8A1F; --ocupado:#5B6B88; --linea:#D9DFE3;
+  --noche:#070D1A; --tinta:#0E1F3D; --cristal:rgba(8,15,31,.74); --borde:rgba(255,255,255,.16);
+  --cal:#F3F5F1; --suave:#B9C5DA; --naranja:#FF8A1F; --panel-w:340px;
   --titulo:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
   --texto:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--cal);color:var(--tinta);font-family:var(--texto);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--noche);color:var(--cal);font-family:var(--texto);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;cursor:pointer}
 a{color:inherit}
-:focus-visible{outline:3px solid var(--poste);outline-offset:2px}
-.ancho{max-width:1240px;margin:0 auto;padding:0 20px}
+:focus-visible{outline:3px solid var(--naranja);outline-offset:2px}
+[hidden]{display:none!important}
 
-.aviso{background:var(--noche);color:#DCE5F3;font-size:14px;padding:8px 0}
-.aviso strong{color:var(--poste);font-weight:700}
+.pantalla{height:100svh;min-height:560px;display:flex;flex-direction:column}
+.aviso{flex:none;background:#04070F;color:#C9D4E8;font-size:13px;line-height:1.25;padding:8px 16px;text-align:center}
+.aviso strong{color:var(--naranja)}
+.escenario{position:relative;flex:1;min-height:0;overflow:hidden;background:#0B1326}
+.marco{position:absolute;inset:0;overflow:hidden}
+.marco::before{content:"";position:absolute;inset:-40px;background:var(--fondo,none) center/cover;filter:blur(26px) brightness(.5);opacity:0;transition:opacity .3s}
+.nivel-1 .marco::before{opacity:1}
+.escena{position:absolute;inset:0;overflow:hidden}
+.capa{position:absolute;inset:0}
+.nivel-1 .capa{right:calc(var(--panel-w) + 40px);left:20px;top:64px;bottom:20px}
+#lienzo{width:100%;height:100%;display:block;transition:filter .5s ease-in}
+#lienzo.zum{filter:blur(5px)}
+@keyframes entra{from{opacity:0;transform:scale(1.2);filter:blur(12px)}to{opacity:1;transform:none;filter:none}}
+@keyframes vuelve{from{opacity:0;transform:scale(.92);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+#lienzo.entra{animation:entra .6s cubic-bezier(.2,.7,.2,1) both}
+#lienzo.vuelve{animation:vuelve .45s cubic-bezier(.2,.7,.2,1) both}
+.velo{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,7,15,.62) 0,rgba(4,7,15,0) 24%,rgba(4,7,15,0) 58%,rgba(4,7,15,.72) 100%);transition:opacity .3s}
+.nivel-1 .velo{opacity:.35}
 
-.cabecera{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px}
-.marca{display:flex;align-items:center;gap:10px;font-family:var(--titulo);font-weight:800;font-size:30px;letter-spacing:.01em;text-decoration:none}
+.arriba{position:absolute;left:20px;top:14px;right:20px;z-index:5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;pointer-events:none}
+.arriba>*{pointer-events:auto}
+.chip{background:var(--cristal);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--borde);border-radius:999px;color:#fff}
+.marca{display:flex;align-items:center;gap:9px;font-family:var(--titulo);font-weight:800;font-size:24px;line-height:1;letter-spacing:.01em;text-decoration:none;padding:7px 18px 7px 9px}
 .marca svg{width:26px;height:26px}
-.cabecera nav{display:flex;gap:22px;font-size:15px;font-weight:500}
-.cabecera nav a{text-decoration:none;border-bottom:2px solid transparent;padding-bottom:2px}
-.cabecera nav a:hover{border-color:var(--poste)}
+.ruta{display:flex;align-items:center;gap:2px;padding:4px 6px;font-size:14px}
+.ruta button{background:none;border:0;border-radius:999px;padding:5px 11px;color:var(--suave);font-weight:500}
+.ruta button:hover{background:rgba(255,255,255,.12);color:#fff}
+.ruta button[aria-current]{color:#fff;font-weight:700;cursor:default;background:none}
+.ruta span{color:#6F7E9A}
 
-.entrada{padding:10px 20px 22px}
-.entrada h1{font-family:var(--titulo);font-weight:800;font-size:clamp(38px,5.2vw,70px);line-height:.98;letter-spacing:-.005em;margin:0 0 10px;max-width:22ch}
-.entrada p{margin:0;max-width:52ch;color:var(--tinta-suave);font-size:19px}
-
-.taquilla{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(310px,1fr);gap:24px;align-items:start;padding-bottom:64px}
-.ruta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px;font-size:15px;min-height:34px}
-.ruta button{background:none;border:0;padding:4px 8px;border-radius:8px;font-weight:500;color:var(--tinta-suave)}
-.ruta button:hover{background:#E4E9E6}
-.ruta button[aria-current]{color:var(--tinta);font-weight:700;cursor:default;background:none}
-.ruta span{color:#9AA5B5}
-
-.lienzo{position:relative;border-radius:22px;overflow:hidden;background:#22381f;aspect-ratio:1024/880}
-.lienzo.noche{background:linear-gradient(rgba(11,24,48,.86),rgba(11,24,48,.95)),url(aereo.webp) center/240%}
-.vista{position:absolute;inset:0;overflow:hidden;background:#0B1830}
-.vista[hidden]{display:none}
-.vista .espejo{position:absolute;inset:0}
-.vista img{width:100%;height:100%;object-fit:cover;display:block}
-.vista-rotulo{position:absolute;left:14px;top:14px;margin:0;color:#fff;background:rgba(11,24,48,.8);border-radius:10px;padding:7px 12px;font-size:14px;font-weight:500}
-@keyframes entra{from{opacity:0;transform:scale(1.16);filter:blur(9px)}to{opacity:1;transform:none;filter:none}}
-.entra{animation:entra .55s cubic-bezier(.2,.7,.2,1) both}
-.foto-asiento{display:block;width:100%;height:150px;object-fit:cover;object-position:50% 70%;border-radius:12px;margin-top:10px}
-.lienzo svg{position:absolute;inset:0;width:100%;height:100%;display:block;transition:opacity .28s ease}
-.lienzo svg[hidden]{display:none}
-.lienzo svg.fuera{opacity:0}
-.zona{fill:rgba(255,255,255,.07);stroke:rgba(255,255,255,.6);stroke-width:1.6;stroke-linejoin:round;cursor:pointer;transition:fill .15s ease,stroke .15s ease}
-.zona:hover,.zona.activa,.zona:focus-visible{fill:rgba(255,138,31,.66);stroke:#fff;stroke-width:2.6;outline:none}
-.globo{position:absolute;z-index:3;pointer-events:none;background:var(--papel);color:var(--tinta);border-radius:12px;padding:9px 13px;font-size:14px;line-height:1.3;box-shadow:0 10px 30px rgba(4,12,30,.45);transform:translate(-50%,calc(-100% - 14px));white-space:nowrap}
+.titular{position:absolute;left:28px;bottom:26px;z-index:3;max-width:min(360px,24vw);text-shadow:0 2px 22px rgba(0,0,0,.6);pointer-events:none}
+.titular h1{font-family:var(--titulo);font-weight:800;font-size:clamp(34px,3.9vw,64px);line-height:.94;margin:0 0 10px}
+.titular p{margin:0;font-size:16px;color:#E9EEF8;max-width:34ch}
+.pista{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:3;margin:0;padding:8px 16px;font-size:14px;white-space:nowrap;pointer-events:none}
+.nivel-1 .pista{left:calc((100% - var(--panel-w) - 20px)/2)}
+.globo{position:absolute;z-index:6;pointer-events:none;background:#fff;color:var(--tinta);border-radius:12px;padding:8px 12px;font-size:14px;line-height:1.3;box-shadow:0 10px 30px rgba(0,0,0,.5);transform:translate(-50%,calc(-100% - 14px));white-space:nowrap}
 .globo b{display:block;font-size:15px}
-.pista{position:absolute;left:14px;bottom:12px;z-index:2;color:#fff;background:rgba(11,24,48,.78);border-radius:10px;padding:6px 12px;font-size:14px;margin:0;pointer-events:none}
 
-.butaca{cursor:pointer}
-.butaca rect.resp{fill:#F4F2EA;transition:fill .12s ease}
-.butaca rect.base{fill:#C9C5B8}
-.butaca:hover rect.resp{fill:#FFD3A8}
-.butaca.mia rect.resp{fill:var(--poste)} .butaca.mia rect.base{fill:#C4600A}
-.butaca.ocupada{cursor:not-allowed}
-.butaca.ocupada rect.resp{fill:var(--ocupado)} .butaca.ocupada rect.base{fill:#46546F}
-.butaca:focus-visible{outline:none}
-.butaca:focus-visible rect.resp{stroke:var(--poste);stroke-width:3}
-.fila-letra{fill:#9FB3D6;font:600 15px var(--texto)}
-.rotulo{fill:#C9D6EC;font:500 15px var(--texto)}
-
-.panel{background:var(--papel);border-radius:22px;padding:24px;position:sticky;top:16px}
-.partido{border-bottom:1px solid var(--linea);padding-bottom:16px;margin-bottom:6px}
-.partido h2{font-family:var(--titulo);font-weight:800;font-size:34px;line-height:1;margin:0 0 6px}
-.partido p{margin:0;color:var(--tinta-suave);font-size:15px}
-.panel h3{font-size:15px;font-weight:700;margin:16px 0 4px}
+.panel{position:absolute;right:20px;top:64px;bottom:20px;width:var(--panel-w);z-index:4;background:var(--cristal);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--borde);border-radius:20px;padding:18px;overflow:auto;color:#fff;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}
+.partido{border-bottom:1px solid var(--borde);padding-bottom:12px;margin-bottom:4px}
+.partido h2{font-family:var(--titulo);font-weight:800;font-size:30px;line-height:1;margin:0 0 6px}
+.partido p{margin:0;color:var(--suave);font-size:14px}
+.panel h3{font-size:14px;font-weight:700;margin:14px 0 4px;color:#fff}
 .lista-zonas{list-style:none;margin:0;padding:0}
-.lista-zonas li+li{border-top:1px solid var(--linea)}
-.lista-zonas button{display:grid;grid-template-columns:1fr auto;gap:2px 12px;width:100%;text-align:left;background:none;border:0;padding:11px 8px;border-radius:10px}
-.lista-zonas button:hover,.lista-zonas button.activa{background:#FFE9D2}
-.lista-zonas .nombre{font-weight:700}
+.lista-zonas li+li{border-top:1px solid rgba(255,255,255,.1)}
+.lista-zonas button{display:grid;grid-template-columns:1fr auto;gap:0 12px;width:100%;text-align:left;background:none;border:0;padding:9px 8px;border-radius:10px}
+.lista-zonas button:hover,.lista-zonas button.activa{background:rgba(255,138,31,.22)}
+.lista-zonas .nombre{font-weight:700;font-size:15px}
 .lista-zonas .precio{font-family:var(--titulo);font-weight:800;font-size:24px;line-height:1;grid-row:span 2;align-self:center}
-.lista-zonas .libres{font-size:14px;color:var(--tinta-suave)}
-.leyenda{display:flex;flex-wrap:wrap;gap:14px;font-size:14px;color:var(--tinta-suave);margin:10px 0 4px;padding:0;list-style:none}
-.leyenda i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:6px;vertical-align:-2px;border:1px solid #B9C0C9}
-.elegidos{list-style:none;margin:8px 0 0;padding:0}
-.elegidos li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--linea)}
-.elegidos button{background:none;border:0;color:var(--tinta-suave);font-size:14px;text-decoration:underline;padding:4px}
-.vacio{color:var(--tinta-suave);margin:10px 0 0}
-.total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--tinta);margin-top:6px;padding-top:12px}
+.lista-zonas .libres{font-size:13px;color:var(--suave)}
+.mini{display:block;position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;border:0;padding:0;margin-top:12px;background:#000}
+.mini img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.mini:hover img{transform:scale(1.06)}
+.mini span{position:absolute;left:8px;bottom:8px;background:rgba(4,7,15,.78);border-radius:8px;padding:4px 9px;font-size:13px;font-weight:500}
+.leyenda{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--suave);margin:8px 0 2px;padding:0;list-style:none}
+.leyenda i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:6px;vertical-align:-2px}
+.elegidos{list-style:none;margin:10px 0 0;padding:0}
+.elegidos li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(255,255,255,.1)}
+.elegidos button{background:none;border:0;color:var(--suave);font-size:13px;text-decoration:underline;padding:4px}
+.vacio{color:var(--suave);margin:10px 0 0}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #fff;margin-top:4px;padding-top:10px}
 .total b{font-family:var(--titulo);font-weight:800;font-size:40px;line-height:1}
-.nota{font-size:14px;color:var(--tinta-suave);margin:6px 0 0}
-.acciones{display:grid;gap:10px;margin-top:16px}
-.boton{border:0;border-radius:12px;padding:14px 18px;font-weight:700;font-size:17px;background:var(--tinta);color:#fff;text-align:center}
-.boton:hover{background:#183462}
-.boton.claro{background:#E7ECF1;color:var(--tinta)}
-.boton.claro:hover{background:#D8E0E8}
-.boton.sol{background:var(--poste);color:var(--tinta)}
-.boton.sol:hover{background:#FFA24D}
-.boton[disabled]{opacity:.45;cursor:not-allowed}
+.nota{font-size:13px;color:var(--suave);margin:6px 0 0}
+.acciones{display:grid;gap:8px;margin-top:14px}
+.boton{border:0;border-radius:12px;padding:13px 18px;font-weight:700;font-size:16px;background:var(--naranja);color:var(--tinta);text-align:center;text-decoration:none;display:inline-block}
+.boton:hover{background:#FFA24D}
+.boton.claro{background:rgba(255,255,255,.14);color:#fff}
+.boton.claro:hover{background:rgba(255,255,255,.24)}
+.boton[disabled]{opacity:.4;cursor:not-allowed}
+.barra-vista{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:14px;padding:10px 10px 10px 20px;border-radius:18px;max-width:calc(100% - 40px)}
+.barra-vista p{margin:0;font-size:15px;line-height:1.3}
+.barra-vista p small{display:block;color:var(--suave);font-size:13px}
+.barra-vista .boton{padding:11px 16px;font-size:15px;white-space:nowrap}
 
-.franja{background:var(--papel);padding:72px 0}
-.franja h2,.equipos h2{font-family:var(--titulo);font-weight:800;font-size:clamp(34px,4.6vw,58px);line-height:1;margin:0 0 28px;max-width:18ch}
+/* Zonas y asientos sobre las imágenes */
+@keyframes aparece{from{opacity:0}to{opacity:1}}
+.zona{fill:rgba(255,255,255,.05);stroke:rgba(255,255,255,.8);stroke-width:1.3;vector-effect:non-scaling-stroke;stroke-linejoin:round;cursor:pointer;transition:fill .15s ease;animation:aparece .5s both;animation-delay:calc(var(--i)*55ms + .25s)}
+.zona:hover,.zona.activa,.zona:focus-visible{fill:rgba(255,138,31,.62);stroke:#fff;stroke-width:2.4;outline:none}
+.silla{cursor:pointer;outline:none}
+.silla .tinte{fill:transparent}
+.silla .brillo{fill:transparent}
+.silla .borde{fill:none;stroke:#fff;stroke-opacity:0;stroke-width:2.5;vector-effect:non-scaling-stroke}
+.silla:hover .borde,.silla:focus-visible .borde{stroke-opacity:.95}
+.silla:hover .brillo{fill:rgba(255,255,255,.14)}
+.silla.mia .tinte{fill:#FF7A00;mix-blend-mode:color}
+.silla.mia .brillo{fill:rgba(255,138,31,.34)}
+.silla.mia .borde{stroke-opacity:1}
+.silla.ocupada{cursor:not-allowed}
+.silla.ocupada .tinte{fill:#3A4252;mix-blend-mode:color}
+.silla.ocupada .brillo{fill:rgba(5,9,18,.6)}
+.silla.ocupada:hover .borde{stroke-opacity:.3}
+.letra circle{fill:rgba(4,7,15,.8)}
+.letra text{fill:#fff;font:700 15px var(--texto)}
+
+/* Secciones bajo el estadio */
+.ancho{max-width:1180px;margin:0 auto;padding:0 24px}
+.franja{padding:76px 0;background:#0A1222}
+.franja.alt{background:var(--noche)}
+.franja h2{font-family:var(--titulo);font-weight:800;font-size:clamp(34px,4.6vw,58px);line-height:1;margin:0 0 28px;max-width:18ch}
 .razones{display:grid;grid-template-columns:repeat(3,1fr);gap:36px;margin:0}
-.razones div{border-top:3px solid var(--tinta);padding-top:14px}
+.razones div{border-top:3px solid var(--naranja);padding-top:14px}
 .razones dt{font-weight:700;font-size:20px;margin-bottom:6px}
-.razones dd{margin:0;color:var(--tinta-suave)}
-.equipos{padding:72px 0}
-.equipos .dos{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
-.equipos p{margin:0 0 14px;max-width:56ch}
-.equipos ul{margin:0;padding-left:20px}
-.equipos li{margin-bottom:8px}
-.pie{background:var(--noche);color:#B9C6DC;font-size:14px;padding:28px 0}
-.pie p{margin:0 0 6px;max-width:80ch}
+.razones dd{margin:0;color:var(--suave)}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.dos p{margin:0 0 16px;max-width:54ch;font-size:18px}
+.dos ul{margin:0;padding-left:20px;color:var(--suave)}
+.dos li{margin-bottom:8px}
+.pie{background:#04070F;color:#9FADC6;font-size:14px;padding:28px 0}
+.pie p{margin:0 0 6px;max-width:84ch}
 .pie strong{color:#fff}
 
-dialog{border:0;border-radius:22px;padding:0;width:min(520px,calc(100vw - 24px));color:var(--tinta);background:var(--papel)}
-dialog::backdrop{background:rgba(6,14,32,.72)}
+dialog{border:0;border-radius:22px;padding:0;width:min(520px,calc(100vw - 24px));color:var(--tinta);background:#fff}
+dialog::backdrop{background:rgba(3,6,14,.78)}
 .pago{padding:26px}
 .pago h2{font-family:var(--titulo);font-weight:800;font-size:36px;line-height:1;margin:0 0 6px}
-.pago p{margin:0 0 14px;color:var(--tinta-suave)}
+.pago p{margin:0 0 14px;color:#4A5873}
 .metodos{display:grid;gap:8px;margin:0 0 16px;padding:0;border:0}
-.metodos label{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--linea);border-radius:12px;padding:12px 14px;cursor:pointer}
+.metodos legend{font-size:14px;color:#4A5873;margin-bottom:8px;padding:0}
+.metodos label{display:flex;gap:12px;align-items:flex-start;border:2px solid #D9DFE3;border-radius:12px;padding:12px 14px;cursor:pointer}
 .metodos label:has(input:checked){border-color:var(--tinta);background:#FFE9D2}
 .metodos input{margin-top:5px;accent-color:var(--tinta)}
 .metodos b{display:block}
-.metodos small{color:var(--tinta-suave);font-size:14px}
+.metodos small{color:#4A5873;font-size:14px}
 .simulacion{background:#EEF2F6;border-radius:12px;padding:12px 14px;font-size:15px;margin-bottom:16px}
 .fila-botones{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.pago .boton.claro{background:#E7ECF1;color:var(--tinta)}
+.pago .boton.claro:hover{background:#D8E0E8}
+.pago .boton.oscuro{background:var(--tinta);color:#fff}
 .boleto{background:var(--noche);color:#fff;border-radius:16px;display:grid;grid-template-columns:1fr auto;gap:18px;padding:20px;margin-bottom:16px;
   -webkit-mask:radial-gradient(circle 11px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 11px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat;
   mask:radial-gradient(circle 11px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 11px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
 .boleto h3{font-family:var(--titulo);font-weight:800;font-size:28px;line-height:1;margin:0 0 8px}
 .boleto p{color:#C9D6EC;margin:0 0 4px;font-size:15px}
-.boleto .puestos{color:var(--poste);font-weight:700}
+.boleto .puestos{color:var(--naranja);font-weight:700}
 .boleto svg{width:118px;height:118px;background:#fff;border-radius:8px;padding:6px}
-.boleto figcaption{font-size:12px;color:#C9D6EC;text-align:center;margin-top:4px}
 .boleto figure{margin:0}
+.boleto figcaption{font-size:12px;color:#C9D6EC;text-align:center;margin-top:4px}
 
-@media (max-width:900px){
-  .taquilla{grid-template-columns:1fr}
-  .panel{position:static}
+/* Teléfonos y pantallas verticales: todo apilado */
+@media (max-width:900px),(orientation:portrait){
+  .pantalla{height:auto;min-height:0;display:block}
+  .escenario{overflow:visible;background:var(--noche)}
+  .arriba{position:static;padding:12px 14px 10px}
+  .marco{position:relative;inset:auto;width:100%;aspect-ratio:1024/880}
+  .nivel-1 .capa{position:relative;inset:auto;right:auto;left:auto;top:auto;bottom:auto;height:100%;width:auto;aspect-ratio:16/9}
+  .nivel-1 .escena{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+  .velo{display:none}
+  .titular{position:static;padding:18px 16px 2px;max-width:none;text-shadow:none;pointer-events:auto}
+  .titular h1{font-size:clamp(36px,10vw,52px)}
+  .titular p{font-size:17px}
+  .pista,.nivel-1 .pista{left:10px;bottom:10px;transform:none;font-size:13px;padding:6px 12px}
+  .panel{position:static;width:auto;margin:14px 12px 20px;overflow:visible}
+  .barra-vista{position:static;transform:none;margin:12px;max-width:none;flex-wrap:wrap;border-radius:16px;padding:14px}
   .razones{grid-template-columns:1fr;gap:24px}
-  .equipos .dos{grid-template-columns:1fr;gap:20px}
-  .cabecera nav a.opcional{display:none}
-}
-@media (max-width:520px){
-  body{font-size:16px}
-  .lienzo{border-radius:16px}
-  .panel{padding:18px;border-radius:16px}
+  .dos{grid-template-columns:1fr;gap:20px}
+  .franja{padding:52px 0}
   .boleto{grid-template-columns:1fr}
-  .pista{font-size:13px}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  .lienzo svg,.zona,.butaca rect.resp{transition:none}
+  #lienzo,#lienzo.entra,#lienzo.vuelve,.zona,.mini img{animation:none;transition:none}
 }
 </style>
 </head>
 <body>
-<div class="aviso"><div class="ancho"><strong>Demo de concepto.</strong> Los equipos, el partido y los precios son inventados. Aquí no se venden boletos ni se procesan pagos.</div></div>
+<div class="pantalla">
+  <div class="aviso"><strong>Demo de concepto.</strong> Los equipos, el partido y los precios son inventados. Aquí no se venden boletos ni se procesan pagos.</div>
 
-<header class="cabecera ancho">
-  <a class="marca" href="#" aria-label="Tribuna, inicio">
-    <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0E1F3D"/><rect x="9" y="9" width="14" height="14" fill="#FF8A1F" transform="rotate(45 16 16)"/></svg>
-    Tribuna
-  </a>
-  <nav aria-label="Secciones">
-    <a href="#taquilla">Elegir puesto</a>
-    <a class="opcional" href="#venezuela">Pagos y datos</a>
-    <a class="opcional" href="#equipos">Para equipos</a>
-  </nav>
-</header>
-
-<main>
-  <div class="entrada ancho">
-    <h1>Elige tu puesto viendo el estadio.</h1>
-    <p>Toca una zona, escoge tu asiento y mira el terreno desde ahí antes de pagar.</p>
-  </div>
-
-  <section class="taquilla ancho" id="taquilla" aria-label="Taquilla">
-    <div>
-      <nav class="ruta" id="ruta" aria-label="Dónde estás"></nav>
-      <div class="lienzo" id="lienzo">
-        <svg id="mapa" viewBox="0 100 1024 880" role="group" aria-label="Vista aérea del estadio. Elige una zona."></svg>
-        <svg id="butacas" viewBox="0 10 700 644" hidden role="group" aria-label="Asientos de la zona"></svg>
-        <div id="vista" class="vista" hidden></div>
-        <div class="globo" id="globo" hidden></div>
-        <p class="pista" id="pista">Toca una zona para ver sus asientos</p>
-      </div>
+  <main class="escenario nivel-0" id="escenario" aria-label="Taquilla">
+    <div class="arriba">
+      <a class="chip marca" href="#" aria-label="Tribuna, inicio">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0E1F3D"/><rect x="9" y="9" width="14" height="14" fill="#FF8A1F" transform="rotate(45 16 16)"/></svg>
+        Tribuna
+      </a>
+      <nav class="chip ruta" id="ruta" aria-label="Dónde estás"></nav>
+    </div>
+    <div class="marco" id="marco">
+      <div class="escena" id="escena"><div class="capa">
+        <svg id="lienzo" viewBox="0 0 1024 576" preserveAspectRatio="xMidYMid slice" role="group" aria-label="Estadio"></svg>
+      </div></div>
+      <div class="velo"></div>
+      <p class="chip pista" id="pista"></p>
+      <div class="globo" id="globo" hidden></div>
+    </div>
+    <div class="titular" id="titular">
+      <h1>Elige tu puesto viendo el estadio.</h1>
+      <p>Toca una zona, escoge tu asiento y mira el terreno desde ahí antes de pagar.</p>
     </div>
     <aside class="panel" id="panel" aria-live="polite"></aside>
-  </section>
+    <div class="chip barra-vista" id="barraVista" hidden></div>
+  </main>
+</div>
 
-  <section class="franja" id="venezuela">
-    <div class="ancho">
-      <h2>Hecho para comprar desde Venezuela</h2>
-      <dl class="razones">
-        <div><dt>Pagas como siempre pagas</dt><dd>Pago Móvil, Zelle o USDT. Los precios se ven en dólares y se cobran en bolívares a la tasa oficial del día.</dd></div>
-        <div><dt>Carga con datos móviles</dt><dd>Las imágenes van comprimidas y no hay videos pesados, para que abra rápido aunque la señal sea floja.</dd></div>
-        <div><dt>El boleto llega a tu teléfono</dt><dd>Un código QR por WhatsApp o correo, pensado para validarse en la puerta aunque falle la conexión del estadio.</dd></div>
-      </dl>
-    </div>
-  </section>
+<section class="franja" id="venezuela">
+  <div class="ancho">
+    <h2>Hecho para comprar desde Venezuela</h2>
+    <dl class="razones">
+      <div><dt>Pagas como siempre pagas</dt><dd>Pago Móvil, Zelle o USDT. Los precios se ven en dólares y se cobran en bolívares a la tasa oficial del día.</dd></div>
+      <div><dt>Carga con datos móviles</dt><dd>Las imágenes van comprimidas y no hay videos pesados, para que abra rápido aunque la señal sea floja.</dd></div>
+      <div><dt>El boleto llega a tu teléfono</dt><dd>Un código QR por WhatsApp o correo, pensado para validarse en la puerta aunque falle la conexión del estadio.</dd></div>
+    </dl>
+  </div>
+</section>
 
-  <section class="equipos" id="equipos">
-    <div class="ancho">
-      <h2>Para equipos y boleteras</h2>
-      <div class="dos">
-        <div>
-          <p>Tribuna no reemplaza tu boletería: se conecta a ella. El inventario, los precios y la pasarela de pago siguen siendo tuyos. Nosotros ponemos la experiencia de elegir el puesto.</p>
-          <p id="contacto" hidden></p>
-        </div>
-        <ul>
-          <li>Recreamos tu estadio en 3D, zona por zona, con la vista desde cada sector.</li>
-          <li>Funciona para béisbol, fútbol, baloncesto y conciertos.</li>
-          <li>Precios distintos para clásicos, abonos y palcos, con pago en cuotas para los abonos.</li>
-          <li>Sale con tu marca y en tu dominio.</li>
-        </ul>
+<section class="franja alt" id="equipos">
+  <div class="ancho">
+    <h2>Para equipos y boleteras</h2>
+    <div class="dos">
+      <div>
+        <p>Tribuna no reemplaza tu boletería: se conecta a ella. El inventario, los precios y la pasarela de pago siguen siendo tuyos. Nosotros ponemos la experiencia de elegir el puesto.</p>
+        <p id="contacto" hidden></p>
       </div>
+      <ul>
+        <li>Recreamos tu estadio en 3D, zona por zona, con la vista desde cada sector.</li>
+        <li>Funciona para béisbol, fútbol, baloncesto y conciertos.</li>
+        <li>Precios distintos para clásicos, abonos y palcos, con pago en cuotas para los abonos.</li>
+        <li>Sale con tu marca y en tu dominio.</li>
+      </ul>
     </div>
-  </section>
-</main>
+  </div>
+</section>
 
 <footer class="pie">
   <div class="ancho">
@@ -248,216 +264,250 @@ dialog::backdrop{background:rgba(6,14,32,.72)}
 (function(){
 'use strict';
 /* ---------- Datos de la demo (todo ficticio) ---------- */
-var CONTACTO = 'https://wa.me/584248831167'; // p. ej. 'https://wa.me/58XXXXXXXXXX' o 'mailto:hola@tudominio.com'
+var CONTACTO = 'https://wa.me/584248831167';
 var PARTIDO = {local:'Cóndores', visita:'Corsarios', fecha:'Sábado 5 de diciembre, 7:00 p. m.', lugar:'Estadio de demostración, inspirado en el Monumental de Caracas'};
 var MAX = 6;
 var ZONAS = [
-  {id:'sc', n:'Sillas centrales',          precio:20, filas:8, cols:12, occ:48, v:{img:'vista-home',   zoom:1.2,  oy:46}},
-  {id:'pd', n:'Preferencial primera base', precio:18, filas:8, cols:12, occ:38, v:{img:'vista-lateral',zoom:1.1,  oy:52}},
-  {id:'pi', n:'Preferencial tercera base', precio:18, filas:8, cols:12, occ:36, v:{img:'vista-lateral',zoom:1.1,  oy:52, flip:true}},
-  {id:'ld', n:'Lateral primera base',      precio:12, filas:8, cols:12, occ:28, v:{img:'vista-lateral',zoom:1,    oy:55}},
-  {id:'li', n:'Lateral tercera base',      precio:12, filas:8, cols:12, occ:25, v:{img:'vista-lateral',zoom:1,    oy:55, flip:true}},
-  {id:'vip',n:'Palcos VIP',                precio:40, filas:2, cols:10, occ:30, v:{img:'vista-vip',    zoom:1,    oy:62}},
-  {id:'cl', n:'Club',                      precio:28, filas:7, cols:12, occ:33, v:{img:'vista-home',   zoom:1,    oy:60}},
-  {id:'td', n:'Tribuna alta primera base', precio:8,  filas:8, cols:12, occ:22, v:{img:'vista-lateral',zoom:1,    oy:60}},
-  {id:'ti', n:'Tribuna alta tercera base', precio:8,  filas:8, cols:12, occ:20, v:{img:'vista-lateral',zoom:1,    oy:60, flip:true}},
-  {id:'gd', n:'Gradas jardín derecho',     precio:5,  filas:8, cols:12, occ:18, v:{img:'vista-jardin', zoom:1,    oy:55}},
-  {id:'gi', n:'Gradas jardín izquierdo',   precio:5,  filas:8, cols:12, occ:15, v:{img:'vista-jardin', zoom:1,    oy:55, flip:true}}
+  {id:'sc', n:'Sillas centrales',          precio:20, occ:46, v:{img:'vista-home-w',   zoom:1.12, cy:300}},
+  {id:'pd', n:'Preferencial primera base', precio:18, occ:38, v:{img:'vista-lateral-w',zoom:1.06, cy:300}},
+  {id:'pi', n:'Preferencial tercera base', precio:18, occ:36, v:{img:'vista-lateral-w',zoom:1.06, cy:300, flip:true}},
+  {id:'ld', n:'Lateral primera base',      precio:12, occ:28, v:{img:'vista-lateral-w',zoom:1,    cy:288}},
+  {id:'li', n:'Lateral tercera base',      precio:12, occ:25, v:{img:'vista-lateral-w',zoom:1,    cy:288, flip:true}},
+  {id:'vip',n:'Palcos VIP',                precio:40, occ:30, v:{img:'vista-vip-w',    zoom:1,    cy:288}, palco:true},
+  {id:'cl', n:'Club',                      precio:28, occ:33, v:{img:'vista-home-w',   zoom:1,    cy:288}},
+  {id:'td', n:'Tribuna alta primera base', precio:8,  occ:22, v:{img:'vista-lateral-w',zoom:1,    cy:280}},
+  {id:'ti', n:'Tribuna alta tercera base', precio:8,  occ:20, v:{img:'vista-lateral-w',zoom:1,    cy:280, flip:true}},
+  {id:'gd', n:'Gradas jardín derecho',     precio:5,  occ:18, v:{img:'vista-jardin-w', zoom:1,    cy:288}},
+  {id:'gi', n:'Gradas jardín izquierdo',   precio:5,  occ:15, v:{img:'vista-jardin-w', zoom:1,    cy:288, flip:true}}
 ];
-var LETRAS = 'ABCDEFGHIJ';
+var LETRAS = 'ABCDEFGH';
 
-/* ---------- Zonas trazadas sobre la imagen aérea (1024 x 1024) ---------- */
-var VB = [0,100,1024,880];
-var DENTRO = [[236,452],[262,520],[300,585],[350,655],[410,712],[468,742],[512,750],[558,742],[618,708],[678,650],[724,580],[756,512],[788,452]];
-var MEDIO  = [[172,452],[180,540],[214,622],[268,702],[338,772],[420,816],[512,830],[602,816],[686,772],[756,702],[810,622],[844,540],[852,452]];
-var FUERA  = [[108,428],[112,560],[158,672],[232,772],[328,852],[428,897],[512,908],[598,897],[700,852],[792,772],[862,672],[906,560],[916,428]];
+/* ---------- Zonas trazadas sobre las dos imágenes aéreas ---------- */
 function banda(A,B,i,j){var p=[],k;for(k=i;k<=j;k++)p.push(A[k]);for(k=j;k>=i;k--)p.push(B[k]);return p}
-var FORMAS = {
-  li:[banda(DENTRO,MEDIO,0,2)], pi:[banda(DENTRO,MEDIO,2,4)], sc:[banda(DENTRO,MEDIO,4,8)],
-  pd:[banda(DENTRO,MEDIO,8,10)], ld:[banda(DENTRO,MEDIO,10,12)],
-  ti:[banda(MEDIO,FUERA,0,4)], cl:[banda(MEDIO,FUERA,4,5),banda(MEDIO,FUERA,7,8)], vip:[banda(MEDIO,FUERA,5,7)], td:[banda(MEDIO,FUERA,8,12)],
-  gi:[[[465,263],[410,270],[350,290],[290,320],[235,355],[178,395],[215,425],[262,385],[322,345],[380,312],[468,305]]],
-  gd:[[[558,263],[610,270],[670,290],[730,320],[790,355],[848,398],[812,425],[765,388],[705,348],[645,315],[556,305]]]
+function formas(D,M,F,GI,GD){return {
+  li:[banda(D,M,0,2)], pi:[banda(D,M,2,4)], sc:[banda(D,M,4,8)], pd:[banda(D,M,8,10)], ld:[banda(D,M,10,12)],
+  ti:[banda(M,F,0,4)], cl:[banda(M,F,4,5),banda(M,F,7,8)], vip:[banda(M,F,5,7)], td:[banda(M,F,8,12)], gi:[GI], gd:[GD]}}
+var AEREO = {
+  ancho:{img:'aereo-w.webp', vb:[0,0,1024,576], ajuste:'xMidYMid slice', w:1024, h:576, f:formas([[322,262],[359,295],[379,330],[409,365],[449,394],[488,414],[512,421],[538,414],[576,394],[616,365],[646,330],[666,295],[702,262]],[[289,262],[291,298],[304,332],[332,366],[374,401],[426,433],[512,458],[599,433],[651,401],[692,366],[721,332],[734,298],[736,262]],[[250,250],[244,300],[256,341],[284,381],[329,421],[392,461],[512,492],[632,461],[696,421],[741,381],[769,341],[781,300],[775,250]],[[478,162],[440,165],[400,178],[365,191],[331,210],[289,235],[320,259],[345,232],[380,210],[415,195],[450,188],[479,185]],[[545,162],[585,165],[625,178],[660,191],[695,210],[735,235],[704,259],[679,232],[645,210],[610,195],[575,188],[546,185]])},
+  alto: {img:'aereo.webp',   vb:[0,100,1024,880], ajuste:'xMidYMid meet', w:1024, h:1024, f:formas([[236,452],[262,520],[300,585],[350,655],[410,712],[468,742],[512,750],[558,742],[618,708],[678,650],[724,580],[756,512],[788,452]],[[172,452],[180,540],[214,622],[268,702],[338,772],[420,816],[512,830],[602,816],[686,772],[756,702],[810,622],[844,540],[852,452]],[[108,428],[112,560],[158,672],[232,772],[328,852],[428,897],[512,908],[598,897],[700,852],[792,772],[862,672],[906,560],[916,428]],[[465,263],[410,270],[350,290],[290,320],[235,355],[178,395],[215,425],[262,385],[322,345],[380,312],[468,305]],[[558,263],[610,270],[670,290],[730,320],[790,355],[848,398],[812,425],[765,388],[705,348],[645,315],[556,305]])}
 };
+/* ---------- Asientos trazados sobre las fotos (1024 x 576) ---------- */
+var FILAS = [[392,512,[158,259,360,461,562,662,763,864],92],[272,384,[184,277,370,464,557,650,744,838],84],[166,268,[206,293,380,467,554,641,728,816],78],[70,164,[227,309,390,471,553,634,716,797],72]];
+var PALCO = [[120,262,262,342,"A",1],[335,262,432,300,"A",2],[465,262,560,300,"A",3],[598,262,692,300,"A",4],[760,262,905,342,"A",5],[0,296,166,416,"B",1],[228,296,420,416,"B",2],[422,296,600,416,"B",3],[602,296,795,416,"B",4],[856,296,1024,416,"B",5],[0,420,350,576,"C",1],[355,460,665,576,"C",2],[672,420,1024,576,"C",3]];
+function sillas(z){
+  var o=[];
+  if(z.palco){PALCO.forEach(function(p,k){o.push({id:p[4]+p[5],fila:p[4],num:p[5],i:LETRAS.indexOf(p[4]),n:3,x0:p[0],y0:p[1],x1:p[2],y1:p[3],rx:16})})}
+  else FILAS.forEach(function(f,i){f[2].forEach(function(x,j){o.push({id:LETRAS[i]+(j+1),fila:LETRAS[i],num:j+1,i:i,n:FILAS.length,x0:x-f[3]/2,y0:f[0],x1:x+f[3]/2,y1:f[1],rx:12})})});
+  return o;
+}
 function f1(n){return Math.round(n*10)/10}
 function hash(s){var h=2166136261;for(var k=0;k<s.length;k++){h^=s.charCodeAt(k);h=Math.imul(h,16777619)}return h>>>0}
 var comprados = {};
-function clave(z,i,j){return z.id+'-'+i+'-'+j}
-function ocupado(z,i,j){return !!comprados[clave(z,i,j)] || (hash(clave(z,i,j))%100) < z.occ}
-function libres(z){var n=0;for(var i=0;i<z.filas;i++)for(var j=0;j<z.cols;j++)if(!ocupado(z,i,j))n++;return n}
-function puesto(s){return 'Fila '+LETRAS[s.i]+', asiento '+(s.j+1)}
-function puntos(z){var o=[];FORMAS[z.id].forEach(function(pl){pl.forEach(function(q){o.push(q)})});return o}
+function ocupada(z,s){return !!comprados[z.id+'-'+s.id] || (hash(z.id+'-'+s.id)%100) < z.occ}
+function libres(z){return sillas(z).filter(function(s){return !ocupada(z,s)}).length}
+function puesto(s){return 'Fila '+s.fila+', asiento '+s.num}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
 /* ---------- Estado ---------- */
 var E = {nivel:0, zona:null, sel:[]};
 var $ = function(id){return document.getElementById(id)};
-var mapa=$('mapa'), butacas=$('butacas'), vista=$('vista'), panel=$('panel'), ruta=$('ruta'), globo=$('globo'), pista=$('pista'), lienzo=$('lienzo');
+var lienzo=$('lienzo'), panel=$('panel'), ruta=$('ruta'), globo=$('globo'), pista=$('pista'), marco=$('marco'), escena=$('escena'), escenario=$('escenario'), titular=$('titular'), barraVista=$('barraVista');
 var sinMov = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-
-/* ---------- Mapa del estadio ---------- */
-function dibujarMapa(){
-  var h='<image href="aereo.webp" x="0" y="0" width="1024" height="1024"/>';
-  ZONAS.forEach(function(z){
-    var d=FORMAS[z.id].map(function(pl){return 'M'+pl.map(function(q){return q[0]+' '+q[1]}).join('L')+'Z'}).join('');
-    h+='<path class="zona" data-z="'+z.id+'" tabindex="0" role="button" aria-label="'+esc(z.n)+', desde '+z.precio+' dólares, '+libres(z)+' asientos libres" d="'+d+'"/>';
-  });
-  mapa.innerHTML=h;
-}
+var mqAlto = window.matchMedia('(max-width: 900px), (orientation: portrait)');
+function aereo(){return mqAlto.matches?AEREO.alto:AEREO.ancho}
 function zonaPorId(id){for(var k=0;k<ZONAS.length;k++)if(ZONAS[k].id===id)return ZONAS[k];return null}
-function marcar(id){
-  Array.prototype.forEach.call(document.querySelectorAll('[data-z]'),function(el){el.classList.toggle('activa',el.getAttribute('data-z')===id)});
+function sillaPorId(z,id){var l=sillas(z);for(var k=0;k<l.length;k++)if(l[k].id===id)return l[k];return null}
+function elegidas(){return E.sel.map(function(id){return sillaPorId(E.zona,id)})}
+
+/* ---------- Dibujo de cada nivel ---------- */
+function fijarCaja(vb,ajuste){lienzo.setAttribute('viewBox',vb.map(f1).join(' '));if(ajuste)lienzo.setAttribute('preserveAspectRatio',ajuste)}
+function dibujarEstadio(){
+  var a=aereo(), h='<image href="'+a.img+'" x="0" y="0" width="'+a.w+'" height="'+a.h+'"/>';
+  ZONAS.forEach(function(z,k){
+    var d=a.f[z.id].map(function(pl){return 'M'+pl.map(function(q){return q[0]+' '+q[1]}).join('L')+'Z'}).join('');
+    h+='<path class="zona" style="--i:'+k+'" data-z="'+z.id+'" tabindex="0" role="button" aria-label="'+esc(z.n)+', desde '+z.precio+' dólares, '+libres(z)+' asientos libres" d="'+d+'"/>';
+  });
+  fijarCaja(a.vb,a.ajuste);lienzo.innerHTML=h;
+  lienzo.setAttribute('aria-label','Vista aérea del estadio. Elige una zona.');
 }
-function mostrarGlobo(z,ev){
-  var caja=lienzo.getBoundingClientRect(), x, y;
-  if(ev && ev.clientX){x=ev.clientX-caja.left;y=ev.clientY-caja.top}
-  else{var ps=puntos(z),sx=0,sy=0;ps.forEach(function(q){sx+=q[0];sy+=q[1]});x=(sx/ps.length-VB[0])/VB[2]*caja.width;y=(sy/ps.length-VB[1])/VB[3]*caja.height}
-  globo.innerHTML='<b>'+esc(z.n)+'</b>Desde $'+z.precio+', '+libres(z)+' libres';
-  globo.style.left=Math.max(90,Math.min(caja.width-90,x))+'px';
-  globo.style.top=Math.max(64,y)+'px';
+function dibujarAsientos(){
+  var z=E.zona, img=z.palco?'palco-w.webp':'asientos-w.webp', h='<image href="'+img+'" x="0" y="0" width="1024" height="576"/>';
+  sillas(z).forEach(function(s){
+    var oc=ocupada(z,s), mia=E.sel.indexOf(s.id)>=0, w=f1(s.x1-s.x0), al=f1(s.y1-s.y0), r='x="'+f1(s.x0)+'" y="'+f1(s.y0)+'" width="'+w+'" height="'+al+'" rx="'+s.rx+'"';
+    h+='<g class="silla'+(oc?' ocupada':'')+(mia?' mia':'')+'" data-s="'+s.id+'" role="button" tabindex="'+(oc?-1:0)+'" aria-disabled="'+oc+'" aria-pressed="'+mia+'" aria-label="'+puesto(s)+(oc?', ocupado':mia?', elegido':', libre')+'"><rect class="tinte" '+r+'/><rect class="brillo" '+r+'/><rect class="borde" '+r+'/></g>';
+  });
+  if(!z.palco)FILAS.forEach(function(f,i){var x=f[2][0]-f[3]/2-24,y=(f[0]+f[1])/2;h+='<g class="letra" aria-hidden="true"><circle cx="'+x+'" cy="'+y+'" r="15"/><text x="'+x+'" y="'+(y+5)+'" text-anchor="middle">'+LETRAS[i]+'</text></g>'});
+  fijarCaja([0,0,1024,576],mqAlto.matches?'xMidYMid slice':'xMidYMid meet');lienzo.innerHTML=h;
+  marco.style.setProperty('--fondo','url('+img+')');
+  lienzo.setAttribute('aria-label','Asientos de '+z.n+'. Elige los tuyos.');
+}
+function cajaVista(z,s){
+  var v=z.v, zoom=v.zoom+(s.n-1-s.i)*.035, w=1024/zoom, h=576/zoom;
+  var cx=512+((s.x0+s.x1)/2/1024-.5)*70*(v.flip?-1:1), cy=v.cy;
+  return [Math.max(0,Math.min(1024-w,cx-w/2)), Math.max(0,Math.min(576-h,cy-h/2)), w, h];
+}
+function dibujarVista(){
+  var z=E.zona, s=elegidas()[E.sel.length-1], v=z.v;
+  lienzo.innerHTML='<image href="'+v.img+'.webp" x="0" y="0" width="1024" height="576"'+(v.flip?' transform="translate(1024 0) scale(-1 1)"':'')+'/>';
+  fijarCaja(cajaVista(z,s),'xMidYMid slice');
+  lienzo.setAttribute('aria-label','Vista aproximada del terreno desde '+z.n);
+}
+
+/* ---------- Globo de información ---------- */
+function globoEn(html,ev,el){
+  var caja=marco.getBoundingClientRect(), r, x, y;
+  if(ev&&ev.clientX){x=ev.clientX-caja.left;y=ev.clientY-caja.top}
+  else{r=el.getBoundingClientRect();x=r.left+r.width/2-caja.left;y=r.top-caja.top+8}
+  globo.innerHTML=html;
+  globo.style.left=Math.max(100,Math.min(caja.width-100,x))+'px';
+  globo.style.top=Math.max(60,y)+'px';
   globo.hidden=false;
 }
-mapa.addEventListener('pointermove',function(ev){var id=ev.target.getAttribute&&ev.target.getAttribute('data-z');if(id){marcar(id);mostrarGlobo(zonaPorId(id),ev)}else{globo.hidden=true;marcar(null)}});
-mapa.addEventListener('pointerleave',function(){globo.hidden=true;marcar(null)});
-mapa.addEventListener('focusin',function(ev){var id=ev.target.getAttribute('data-z');if(id){marcar(id);mostrarGlobo(zonaPorId(id))}});
-mapa.addEventListener('focusout',function(){globo.hidden=true;marcar(null)});
-mapa.addEventListener('click',function(ev){var id=ev.target.getAttribute('data-z');if(id)abrirZona(zonaPorId(id))});
-mapa.addEventListener('keydown',function(ev){var id=ev.target.getAttribute('data-z');if(id&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();abrirZona(zonaPorId(id))}});
+function marcar(id){Array.prototype.forEach.call(document.querySelectorAll('[data-z]'),function(el){el.classList.toggle('activa',el.getAttribute('data-z')===id)})}
+function sobre(ev){
+  var t=ev.target, zid=t.getAttribute&&t.getAttribute('data-z'), g=t.closest&&t.closest('.silla');
+  if(zid){var z=zonaPorId(zid);marcar(zid);globoEn('<b>'+esc(z.n)+'</b>Desde $'+z.precio+', '+libres(z)+' libres',ev.type==='focusin'?null:ev,t)}
+  else if(g){var s=sillaPorId(E.zona,g.getAttribute('data-s'));globoEn('<b>'+puesto(s)+'</b>'+(ocupada(E.zona,s)?'Ocupado':'$'+E.zona.precio),ev.type==='focusin'?null:ev,g)}
+  else{globo.hidden=true;marcar(null)}
+}
+lienzo.addEventListener('pointermove',sobre);
+lienzo.addEventListener('focusin',sobre);
+lienzo.addEventListener('pointerleave',function(){globo.hidden=true;marcar(null)});
+lienzo.addEventListener('focusout',function(){globo.hidden=true;marcar(null)});
+function activar(ev){
+  var t=ev.target, zid=t.getAttribute&&t.getAttribute('data-z'), g=t.closest&&t.closest('.silla');
+  if(ev.type==='keydown'){if(ev.key!=='Enter'&&ev.key!==' ')return;if(zid||g)ev.preventDefault()}
+  if(zid)abrirZona(zonaPorId(zid));
+  else if(g)alternar(g.getAttribute('data-s'));
+}
+lienzo.addEventListener('click',activar);
+lienzo.addEventListener('keydown',activar);
 
-/* ---------- Zoom hacia la zona ---------- */
-function animarCaja(desde,hasta,ms,fin){
-  if(sinMov||!window.requestAnimationFrame){mapa.setAttribute('viewBox',hasta.join(' '));fin();return}
-  var t0=null;
+/* ---------- Movimiento de cámara ---------- */
+function cajaActual(){return lienzo.getAttribute('viewBox').split(/[ ,]+/).map(Number)}
+function animarCaja(hasta,ms,fin){
+  if(sinMov||!window.requestAnimationFrame){fin();return}
+  var desde=cajaActual(), t0=null;
+  lienzo.classList.add('zum');
   function paso(t){
     if(t0===null)t0=t;
     var p=Math.min(1,(t-t0)/ms), e=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
-    mapa.setAttribute('viewBox',desde.map(function(v,k){return f1(v+(hasta[k]-v)*e)}).join(' '));
-    if(p<1)requestAnimationFrame(paso);else fin();
+    lienzo.setAttribute('viewBox',desde.map(function(v,k){return f1(v+(hasta[k]-v)*e)}).join(' '));
+    if(p<1)requestAnimationFrame(paso);else{lienzo.classList.remove('zum');fin()}
   }
   requestAnimationFrame(paso);
 }
-function cajaZona(z){
-  var ps=puntos(z), xs=ps.map(function(q){return q[0]}), ys=ps.map(function(q){return q[1]});
-  var x0=Math.min.apply(null,xs)-20,x1=Math.max.apply(null,xs)+20,y0=Math.min.apply(null,ys)-20,y1=Math.max.apply(null,ys)+20;
-  var w=x1-x0,hh=y1-y0,prop=VB[2]/VB[3];
-  if(w/hh<prop){var nw=hh*prop;x0-=(nw-w)/2;w=nw}else{var nh=w/prop;y0-=(nh-hh)/2;hh=nh}
-  return [x0,y0,w,hh];
+function cajaDe(ps,margen,prop){
+  var xs=ps.map(function(q){return q[0]}), ys=ps.map(function(q){return q[1]});
+  var x0=Math.min.apply(null,xs)-margen,x1=Math.max.apply(null,xs)+margen,y0=Math.min.apply(null,ys)-margen,y1=Math.max.apply(null,ys)+margen;
+  var w=x1-x0,h=y1-y0;
+  if(w/h<prop){var nw=h*prop;x0-=(nw-w)/2;w=nw}else{var nh=w/prop;y0-=(nh-h)/2;h=nh}
+  return [x0,y0,w,h];
 }
-var ocupadoAnim=false;
+function propMarco(){var r=marco.getBoundingClientRect();return r.width/Math.max(1,r.height)}
+function entrar(clase){
+  lienzo.classList.remove('entra','vuelve');
+  if(sinMov)return;
+  void lienzo.getBoundingClientRect();lienzo.classList.add(clase);
+}
+var enMovimiento=false;
 function abrirZona(z){
-  if(ocupadoAnim)return;
-  ocupadoAnim=true;globo.hidden=true;pista.hidden=true;marcar(z.id);
-  animarCaja(VB.slice(),cajaZona(z),700,function(){
-    E.nivel=1;E.zona=z;E.sel=[];
-    mapa.classList.add('fuera');
-    setTimeout(function(){
-      mapa.setAttribute('hidden','');mapa.classList.remove('fuera');mapa.setAttribute('viewBox',VB.join(' '));marcar(null);
-      pintar();ocupadoAnim=false;
-      var primero=butacas.querySelector('.butaca:not(.ocupada)');if(primero&&document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#mapa'))primero.focus();
-    },sinMov?0:240);
+  if(enMovimiento||E.nivel!==0)return;
+  enMovimiento=true;globo.hidden=true;marcar(z.id);
+  var ps=[];aereo().f[z.id].forEach(function(pl){pl.forEach(function(q){ps.push(q)})});
+  animarCaja(cajaDe(ps,14,propMarco()),820,function(){
+    E.nivel=1;E.zona=z;E.sel=[];pintar('entra');enMovimiento=false;
+    if(mqAlto.matches)escena.scrollLeft=(escena.scrollWidth-escena.clientWidth)/2;
   });
 }
-
-/* ---------- Asientos ---------- */
-function dibujarButacas(){
-  var z=E.zona, W=700, m=z.cols, n=z.filas, paso=Math.min(52,560/(m-1)), anchoB=paso*.78, altoB=Math.min(40,anchoB*1.05);
-  var x0=(W-paso*(m-1))/2, gap=Math.min(62,440/n), yBase=560, h='';
-  h+='<text class="rotulo" x="350" y="44" text-anchor="middle">'+esc(z.n)+'</text>';
-  for(var i=0;i<n;i++){
-    var y=yBase-i*gap;
-    h+='<text class="fila-letra" x="'+f1(x0-paso*.9)+'" y="'+f1(y+5)+'" text-anchor="middle">'+LETRAS[i]+'</text>';
-    for(var j=0;j<m;j++){
-      var u=(j-(m-1)/2)/((m-1)/2), x=x0+j*paso, yy=y-18*u*u;
-      var oc=ocupado(z,i,j), mia=E.sel.some(function(s){return s.i===i&&s.j===j});
-      h+='<g class="butaca'+(oc?' ocupada':'')+(mia?' mia':'')+'" data-i="'+i+'" data-j="'+j+'" role="button" tabindex="'+(oc?-1:0)+'" aria-disabled="'+oc+'" aria-pressed="'+mia+'" aria-label="Fila '+LETRAS[i]+', asiento '+(j+1)+(oc?', ocupado':mia?', elegido':', libre')+'">'
-        +'<rect class="base" x="'+f1(x-anchoB/2+2)+'" y="'+f1(yy+altoB*.28)+'" width="'+f1(anchoB-4)+'" height="'+f1(altoB*.36)+'" rx="5"/>'
-        +'<rect class="resp" x="'+f1(x-anchoB/2)+'" y="'+f1(yy-altoB/2)+'" width="'+f1(anchoB)+'" height="'+f1(altoB*.82)+'" rx="'+f1(anchoB*.26)+'"/></g>';
-    }
-  }
-  h+='<path d="M70 598Q350 620 630 598" fill="none" stroke="#1E7B45" stroke-width="8" stroke-linecap="round"/>';
-  h+='<text class="rotulo" x="350" y="638" text-anchor="middle">El terreno queda de este lado</text>';
-  butacas.innerHTML=h;
+function verVista(){
+  if(enMovimiento||!E.sel.length)return;
+  var s=elegidas()[E.sel.length-1];
+  enMovimiento=true;globo.hidden=true;
+  animarCaja(cajaDe([[s.x0,s.y0],[s.x1,s.y1]],30,16/9),650,function(){E.nivel=2;pintar('entra');enMovimiento=false;marco.scrollIntoView({block:'nearest'})});
 }
-function alternar(i,j){
-  var z=E.zona;if(ocupado(z,i,j))return;
-  var k=-1;E.sel.forEach(function(s,q){if(s.i===i&&s.j===j)k=q});
-  if(k>=0)E.sel.splice(k,1);
-  else{if(E.sel.length>=MAX)E.sel.shift();E.sel.push({i:i,j:j})}
-  dibujarButacas();pintarPanel();
-  var el=butacas.querySelector('[data-i="'+i+'"][data-j="'+j+'"]');if(el)el.focus({preventScroll:true});
-}
-function deButaca(ev){var g=ev.target.closest&&ev.target.closest('.butaca');return g?{i:+g.getAttribute('data-i'),j:+g.getAttribute('data-j')}:null}
-butacas.addEventListener('click',function(ev){var b=deButaca(ev);if(b)alternar(b.i,b.j)});
-butacas.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){var b=deButaca(ev);if(b){ev.preventDefault();alternar(b.i,b.j)}}});
-
-/* ---------- Vista desde el asiento ---------- */
-function dibujarVista(){
-  var z=E.zona, s=E.sel[E.sel.length-1], v=z.v;
-  var zoom=v.zoom+(z.filas-1-s.i)*.03, dx=((s.j+.5)/z.cols-.5)*12;
-  vista.innerHTML='<div class="espejo"'+(v.flip?' style="transform:scaleX(-1)"':'')+'><img alt="Vista del terreno desde '+esc(z.n)+'" src="'+v.img+'.webp" style="transform:scale('+f1(zoom*100)/100+');transform-origin:'+f1(50+dx)+'% '+v.oy+'%"></div><p class="vista-rotulo">Vista aproximada desde '+esc(z.n)+'. '+puesto(s)+'</p>';
+function alternar(id){
+  var z=E.zona, s=sillaPorId(z,id);if(!s||ocupada(z,s))return;
+  var k=E.sel.indexOf(id);
+  if(k>=0)E.sel.splice(k,1);else{if(E.sel.length>=MAX)E.sel.shift();E.sel.push(id)}
+  var sx=escena.scrollLeft;
+  dibujarAsientos();pintarPanel();pintarPista();escena.scrollLeft=sx;
+  var el=lienzo.querySelector('[data-s="'+id+'"]');if(el)el.focus({preventScroll:true});
 }
 
-/* ---------- Panel y ruta ---------- */
+/* ---------- Ruta, panel y barras ---------- */
 function pintarRuta(){
   var h='<button type="button" data-ir="0"'+(E.nivel===0?' aria-current="page"':'')+'>Estadio</button>';
   if(E.nivel>=1)h+='<span aria-hidden="true">/</span><button type="button" data-ir="1"'+(E.nivel===1?' aria-current="page"':'')+'>'+esc(E.zona.n)+'</button>';
-  if(E.nivel===2)h+='<span aria-hidden="true">/</span><button type="button" data-ir="2" aria-current="page">Vista desde tu asiento</button>';
+  if(E.nivel===2)h+='<span aria-hidden="true">/</span><button type="button" data-ir="2" aria-current="page">Vista</button>';
   ruta.innerHTML=h;
 }
-ruta.addEventListener('click',function(ev){var n=ev.target.getAttribute('data-ir');if(n===null||ev.target.hasAttribute('aria-current'))return;ir(+n)});
-function ir(n){
-  if(n===0){E.nivel=0;E.zona=null;E.sel=[]}
-  else E.nivel=n;
-  pintar();
+ruta.addEventListener('click',function(ev){var n=ev.target.getAttribute('data-ir');if(n===null||ev.target.hasAttribute('aria-current')||enMovimiento)return;ir(+n)});
+function ir(n){if(n===0){E.zona=null;E.sel=[]}E.nivel=n;pintar('vuelve')}
+function pintarPista(){
+  var t='';
+  if(E.nivel===0)t='Toca una zona del estadio';
+  if(E.nivel===1)t=E.sel.length?(E.sel.length+(E.sel.length>1?' asientos elegidos':' asiento elegido')):(mqAlto.matches?'Desliza y toca un asiento':'Toca un asiento libre');
+  pista.textContent=t;pista.hidden=!t;
 }
-function cabezaPartido(){return '<div class="partido"><h2>'+PARTIDO.local+' vs '+PARTIDO.visita+'</h2><p>'+PARTIDO.fecha+'<br>'+PARTIDO.lugar+'</p></div>'}
+function miniatura(z){
+  var v=z.v;
+  return '<button type="button" class="mini" data-accion="vista" aria-label="Ver el terreno desde mi asiento"><img alt="" src="'+v.img+'.webp"'+(v.flip?' style="transform:scaleX(-1)"':'')+'><span>Así se ve desde ahí</span></button>';
+}
 function pintarPanel(){
-  var h=cabezaPartido();
+  var h='<div class="partido"><h2>'+PARTIDO.local+' vs '+PARTIDO.visita+'</h2><p>'+PARTIDO.fecha+'<br>'+PARTIDO.lugar+'</p></div>';
   if(E.nivel===0){
     h+='<h3>Zonas del estadio</h3><ul class="lista-zonas">';
     ZONAS.forEach(function(z){h+='<li><button type="button" data-z="'+z.id+'"><span class="nombre">'+esc(z.n)+'</span><span class="precio">$'+z.precio+'</span><span class="libres">'+libres(z)+' asientos libres</span></button></li>'});
     h+='</ul>';
   }else{
-    var z=E.zona,total=E.sel.length*z.precio;
+    var z=E.zona, l=elegidas(), total=l.length*z.precio;
     h+='<h3>'+esc(z.n)+', $'+z.precio+' por asiento</h3>';
-    h+='<ul class="leyenda"><li><i style="background:#F4F2EA"></i>Libre</li><li><i style="background:#FF8A1F"></i>Tuyo</li><li><i style="background:#5B6B88"></i>Ocupado</li></ul>';
-    if(!E.sel.length)h+='<p class="vacio">Toca los asientos que quieras. Puedes elegir hasta '+MAX+'.</p>';
+    h+='<ul class="leyenda"><li><i style="background:#2F5DA8"></i>Libre</li><li><i style="background:#FF8A1F"></i>Tuyo</li><li><i style="background:#2A3040"></i>Ocupado</li></ul>';
+    if(!l.length)h+='<p class="vacio">Toca los asientos que quieras sobre la foto. Puedes elegir hasta '+MAX+'.</p>';
     else{
-      h+='<img class="foto-asiento" src="asiento.webp" alt="Tu asiento, resaltado en naranja" width="600" height="400">';
-      h+='<ul class="elegidos">';
-      E.sel.forEach(function(s,k){h+='<li><span>'+puesto(s)+'</span><button type="button" data-quitar="'+k+'">Quitar</button></li>'});
+      h+=miniatura(z)+'<ul class="elegidos">';
+      l.forEach(function(s){h+='<li><span>'+puesto(s)+'</span><button type="button" data-quitar="'+s.id+'">Quitar</button></li>'});
       h+='</ul><div class="total"><span>Total</span><b>$'+total+'</b></div><p class="nota">Se cobra en bolívares a la tasa oficial del día.</p>';
     }
-    h+='<div class="acciones">';
-    if(E.nivel===1)h+='<button type="button" class="boton claro" data-accion="vista"'+(E.sel.length?'':' disabled')+'>Ver el terreno desde mi asiento</button>';
-    else h+='<button type="button" class="boton claro" data-accion="asientos">Cambiar de asiento</button>';
-    h+='<button type="button" class="boton" data-accion="reservar"'+(E.sel.length?'':' disabled')+'>Reservar '+(E.sel.length>1?E.sel.length+' asientos':'asiento')+'</button></div>';
+    h+='<div class="acciones"><button type="button" class="boton claro" data-accion="vista"'+(l.length?'':' disabled')+'>Ver el terreno desde mi asiento</button>';
+    h+='<button type="button" class="boton" data-accion="reservar"'+(l.length?'':' disabled')+'>Reservar '+(l.length>1?l.length+' asientos':'asiento')+'</button></div>';
   }
   panel.innerHTML=h;
 }
-panel.addEventListener('click',function(ev){
-  var b=ev.target.closest('button');if(!b)return;
-  if(b.hasAttribute('data-z')){document.getElementById('taquilla').scrollIntoView({block:'start'});abrirZona(zonaPorId(b.getAttribute('data-z')));return}
-  if(b.hasAttribute('data-quitar')){E.sel.splice(+b.getAttribute('data-quitar'),1);if(!E.sel.length&&E.nivel===2)E.nivel=1;pintar();return}
+function pintarBarraVista(){
+  var z=E.zona, l=elegidas(), s=l[l.length-1];
+  barraVista.innerHTML='<p>Vista aproximada desde '+esc(z.n)+'<small>'+puesto(s)+(l.length>1?' y '+(l.length-1)+' más':'')+', $'+(l.length*z.precio)+'</small></p><button type="button" class="boton claro" data-accion="asientos">Cambiar de asiento</button><button type="button" class="boton" data-accion="reservar">Reservar</button>';
+}
+function accion(ev){
+  var b=ev.target.closest('button');if(!b||enMovimiento)return;
+  if(b.hasAttribute('data-z')){marco.scrollIntoView({block:'nearest'});abrirZona(zonaPorId(b.getAttribute('data-z')));return}
+  if(b.hasAttribute('data-quitar')){alternar(b.getAttribute('data-quitar'));return}
   var ac=b.getAttribute('data-accion');
-  if(ac==='vista'){E.nivel=2;pintar();lienzo.scrollIntoView({block:'nearest'})}
-  if(ac==='asientos'){E.nivel=1;pintar()}
+  if(ac==='vista')verVista();
+  if(ac==='asientos')ir(1);
   if(ac==='reservar')abrirPago();
-});
+}
+panel.addEventListener('click',accion);
+barraVista.addEventListener('click',accion);
 panel.addEventListener('pointerover',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-z]');marcar(b?b.getAttribute('data-z'):null)});
 panel.addEventListener('pointerleave',function(){marcar(null)});
 panel.addEventListener('focusin',function(ev){var b=ev.target.closest&&ev.target.closest('button[data-z]');if(b)marcar(b.getAttribute('data-z'))});
 
-function pintar(){
-  mapa.toggleAttribute('hidden',E.nivel!==0);butacas.toggleAttribute('hidden',E.nivel!==1);vista.toggleAttribute('hidden',E.nivel!==2);
-  pista.hidden=E.nivel!==0;globo.hidden=true;lienzo.classList.toggle('noche',E.nivel!==0);
-  if(E.nivel===0)dibujarMapa();
-  if(E.nivel===1)dibujarButacas();
+function pintar(clase){
+  escenario.className='escenario nivel-'+E.nivel;
+  globo.hidden=true;
+  if(E.nivel===0)dibujarEstadio();
+  if(E.nivel===1)dibujarAsientos();
   if(E.nivel===2)dibujarVista();
-  [butacas,vista].forEach(function(el){el.classList.remove('entra')});
-  if(E.nivel>0&&!sinMov){var el=E.nivel===1?butacas:vista;void el.offsetWidth;el.classList.add('entra')}
-  pintarRuta();pintarPanel();
+  titular.hidden=E.nivel!==0;
+  panel.hidden=E.nivel===2;
+  barraVista.hidden=E.nivel!==2;
+  pintarRuta();pintarPista();
+  if(E.nivel===2)pintarBarraVista();else pintarPanel();
+  if(clase)entrar(clase);
 }
+if(mqAlto.addEventListener)mqAlto.addEventListener('change',function(){pintar()});
 
 /* ---------- Pago simulado ---------- */
 var dialogo=$('dialogo'), pago=$('pago');
@@ -467,10 +517,11 @@ var METODOS=[
   {id:'us', n:'USDT', d:'Desde tu billetera o Binance Pay.', pasos:'En el sitio real verías aquí la dirección o el código de pago y la red a usar.'}
 ];
 function abrirPago(){
+  if(!E.sel.length)return;
   var z=E.zona,total=E.sel.length*z.precio,h='<h2 id="pago-titulo">Elige cómo pagar</h2>';
-  h+='<p>'+E.sel.length+' '+(E.sel.length>1?'asientos':'asiento')+' en '+esc(z.n)+'. Total $'+total+'.</p><fieldset class="metodos"><legend class="nota" style="margin-bottom:8px">Método de pago</legend>';
+  h+='<p>'+E.sel.length+' '+(E.sel.length>1?'asientos':'asiento')+' en '+esc(z.n)+'. Total $'+total+'.</p><fieldset class="metodos"><legend>Método de pago</legend>';
   METODOS.forEach(function(m,k){h+='<label><input type="radio" name="metodo" value="'+m.id+'"'+(k===0?' checked':'')+'><span><b>'+m.n+'</b><small>'+m.d+'</small></span></label>'});
-  h+='</fieldset><div class="simulacion" id="pasos"></div><div class="fila-botones"><button type="button" class="boton claro" data-accion="cerrar">Volver</button><button type="button" class="boton sol" data-accion="simular">Simular pago</button></div>';
+  h+='</fieldset><div class="simulacion" id="pasos"></div><div class="fila-botones"><button type="button" class="boton claro" data-accion="cerrar">Volver</button><button type="button" class="boton" data-accion="simular">Simular pago</button></div>';
   pago.innerHTML=h;pintarPasos();
   if(dialogo.showModal)dialogo.showModal();else dialogo.setAttribute('open','');
 }
@@ -484,15 +535,14 @@ function qrMuestra(semilla){
     if(x>8&&x<16&&y>9&&y<15)continue;
     if(hash(semilla+':'+x+':'+y)%100<46)h+='<rect x="'+x*c+'" y="'+y*c+'" width="'+c+'" height="'+c+'" fill="#0B1830"/>';
   }
-  h+=ojo(0,0)+ojo(n-7,0)+ojo(0,n-7)+'<text x="50" y="53" text-anchor="middle" style="font:800 12px Hanken Grotesk,system-ui,sans-serif" fill="#0B1830">DEMO</text></svg>';
-  return h;
+  return h+ojo(0,0)+ojo(n-7,0)+ojo(0,n-7)+'<text x="50" y="53" text-anchor="middle" style="font:800 12px Hanken Grotesk,system-ui,sans-serif" fill="#0B1830">DEMO</text></svg>';
 }
 function confirmar(){
-  var z=E.zona,m=metodoActual(),lista=E.sel.map(puesto).join(' · ');
-  E.sel.forEach(function(s){comprados[clave(z,s.i,s.j)]=true});
+  var z=E.zona,m=metodoActual(),lista=elegidas().map(puesto).join(' · ');
+  E.sel.forEach(function(id){comprados[z.id+'-'+id]=true});
   var h='<h2 id="pago-titulo">Reserva simulada</h2><p>Así recibirías tu boleto después de pagar con '+m.n+'.</p>';
   h+='<div class="boleto"><div><h3>'+PARTIDO.local+' vs '+PARTIDO.visita+'</h3><p>'+PARTIDO.fecha+'</p><p>'+PARTIDO.lugar+'</p><p>'+esc(z.n)+'</p><p class="puestos">'+lista+'</p></div><figure>'+qrMuestra(z.id+lista)+'<figcaption>Código de muestra, no es válido</figcaption></figure></div>';
-  h+='<div class="fila-botones"><button type="button" class="boton" data-accion="otro">Elegir otro asiento</button></div>';
+  h+='<div class="fila-botones"><button type="button" class="boton oscuro" data-accion="otro">Elegir otro asiento</button></div>';
   pago.innerHTML=h;E.sel=[];E.nivel=1;pintar();
 }
 pago.addEventListener('change',pintarPasos);
@@ -505,7 +555,7 @@ function cerrarPago(){if(dialogo.close)dialogo.close();else dialogo.removeAttrib
 dialogo.addEventListener('click',function(ev){if(ev.target===dialogo)cerrarPago()});
 
 /* ---------- Arranque ---------- */
-if(CONTACTO){var pc=$('contacto');pc.hidden=false;pc.innerHTML='<a class="boton" style="display:inline-block;text-decoration:none" href="'+esc(CONTACTO)+'">Hablar con Qiu Agency</a>'}
+if(CONTACTO){var pc=$('contacto');pc.hidden=false;pc.innerHTML='<a class="boton" href="'+esc(CONTACTO)+'">Hablar con Qiu Agency</a>'}
 pintar();
 })();
 </script>

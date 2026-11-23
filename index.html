@@ -342,7 +342,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var g = cv.getContext('2d'), textos = Array.prototype.slice.call(hist.querySelectorAll('.momento')), barra = hist.querySelector('.carga i');
   var N = C.n, cuadros = new Array(N), listos = 0, ancho = 0, alto = 0, ultimo = -1;
-  var BEATS = [0, .2, .4, .58, .75, .96], W = .03, INI = .03, FIN = .97;
+  var BEATS = [0, .2, .41, .615, .76, .96], W = .03, INI = .03, FIN = .97;
   hist.classList.remove('sinvideo');
 
   function ruta(i){ var s = String(i + 1); while (s.length < 3) s = '0' + s; return C.base + s + C.ext; }

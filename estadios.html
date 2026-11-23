@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es-VE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estadios | Tribuna, boletería inmersiva para Venezuela</title>
+<meta name="description" content="La demo de Tribuna adaptada a 8 estadios de la LVBP: Caracas, Maracaibo, Barquisimeto, Valencia, Puerto La Cruz, Margarita, La Guaira y Maracay.">
+<meta name="theme-color" content="#070D1A">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://tribuna.qiuagency.com/estadios.html">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/icono.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/legal.css">
+<script src="/consentimiento.js" defer></script>
+<style>
+.texto{max-width:1180px}
+.intro{max-width:64ch;color:#DCE4F2;margin:0 0 36px}
+.estadios{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px}
+.estadio{background:#0A1222;border:1px solid var(--borde);border-top:4px solid var(--acento);border-radius:18px;padding:20px 20px 16px;display:flex;flex-direction:column}
+.estadio h2{font-family:var(--titulo);font-weight:800;font-size:30px;line-height:1;margin:0 0 6px}
+.lugar{margin:0 0 16px;color:var(--suave)}
+.estadio dl{display:grid;grid-template-columns:repeat(3,auto);gap:10px;margin:0 0 4px}
+.estadio dt{font-size:13px;color:var(--suave)}
+.estadio dd{margin:0;font-weight:700;font-size:19px;font-variant-numeric:tabular-nums}
+.estadio .acciones{margin-top:16px}
+.estadio .boton{font-size:15px;padding:11px 16px}
+.estadio .boton:not(.claro){background:var(--acento)}
+.corta{margin:14px 0 0;font-size:14px;color:var(--suave);margin-top:auto;padding-top:14px}
+.otros{margin-top:56px;max-width:72ch}
+</style>
+</head>
+<body>
+<a class="salto" href="#contenido">Saltar al contenido</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="simbolo" viewBox="0 0 709 447"><path fill="#FF8A1F" fill-rule="evenodd" d="M1.2 447.2C0.2 446.5 0.0 431.7 0.2 376.5L0.5 306.6L9.5 305.3C24.4 303.2 33.8 300.0 44.1 293.4C68.9 277.5 84.6 247.5 82.6 219.5C80.6 190.0 63.3 163.7 37.5 150.8C28.2 146.1 13.5 142.0 6.0 142.0C-0.5 142.0 -0.0 147.7 0.0 71.6C0.0 33.6 0.4 1.9 0.8 1.2C1.5 0.2 73.1 0.0 355.6 0.2L709.5 0.5L709.8 69.9C709.9 120.3 709.7 139.7 708.9 140.6C708.3 141.4 705.9 142.0 703.6 142.0C694.1 142.0 679.2 146.4 668.9 152.3C650.1 163.0 637.3 179.2 630.3 201.0C627.8 208.6 627.5 210.9 627.6 223.5C627.6 238.7 628.5 243.2 633.8 255.7C645.2 282.4 668.7 300.5 698.0 305.0C702.1 305.6 706.5 306.4 707.8 306.6L710.0 307.0L710.0 376.3C710.0 428.9 709.7 445.9 708.8 446.8C707.9 447.7 627.9 448.0 355.1 448.0C161.1 448.0 1.9 447.6 1.2 447.2ZM281.8 334.9C282.0 318.2 282.3 313.0 283.4 312.1C284.3 311.3 304.7 311.1 355.6 311.2L426.5 311.5L427.0 334.0L427.5 356.5L436.0 356.8C449.8 357.3 449.0 358.1 449.0 343.5L449.0 331.0L451.8 329.9C464.7 324.9 473.2 317.4 476.8 307.8C478.9 302.3 479.0 300.2 479.2 257.6L479.5 213.1L476.8 210.3C474.4 207.9 473.3 207.6 467.5 207.6C462.5 207.6 460.3 208.1 458.2 209.7L455.5 211.7L455.2 235.1C455.1 248.0 454.8 259.1 454.5 259.9C454.1 261.0 453.5 260.9 451.7 259.3C448.4 256.3 443.5 254.0 440.2 254.0C438.6 254.0 432.4 255.1 426.4 256.4C402.3 261.6 379.8 264.0 355.3 264.0C336.9 264.0 314.0 262.3 301.5 260.0C298.8 259.5 290.1 257.9 282.3 256.4C268.3 253.8 267.9 253.7 263.5 255.5C260.9 256.4 258.4 258.1 257.7 259.1C257.1 260.1 256.2 261.0 255.8 261.0C255.3 261.0 255.0 250.0 255.0 236.6L255.0 212.1L252.4 210.1C249.1 207.5 242.1 206.5 237.5 208.0C230.7 210.2 230.9 208.7 231.2 259.1L231.5 304.5L234.3 310.2C238.6 318.6 250.7 329.0 256.4 329.0C259.5 329.0 260.7 333.2 260.9 344.5C261.1 350.5 261.4 355.8 261.7 356.3C261.9 356.7 266.5 356.9 271.8 356.8L281.5 356.5L281.8 334.9ZM397.0 242.5C402.8 241.7 409.5 240.6 412.0 240.1C414.5 239.5 421.5 238.1 427.7 236.9C433.8 235.7 439.4 234.4 440.1 233.9C441.1 233.3 441.1 227.7 440.1 204.8C437.4 145.2 436.2 123.4 435.5 121.0C433.0 112.0 425.9 102.2 418.7 97.6C408.0 90.9 407.9 90.9 352.4 91.2L302.5 91.5L296.5 94.4C289.5 97.8 280.5 106.6 277.3 113.0C273.9 120.0 273.1 125.8 272.0 150.0C269.8 195.8 269.0 211.8 268.4 222.2L267.7 232.9L270.6 234.1C278.5 237.1 309.7 242.6 327.0 244.0C341.7 245.2 384.9 244.3 397.0 242.5Z"/></symbol></svg>
+<header class="cabecera">
+  <div class="ancho">
+    <a class="chip marca" href="/" aria-label="Tribuna, inicio"><svg viewBox="0 0 709 447" aria-hidden="true"><use href="#simbolo"/></svg>Tribuna</a>
+    <a class="chip ir" href="/portal/">Portal del cliente</a>
+  </div>
+</header>
+<main id="contenido">
+  <div class="ancho texto">
+    <h1>Tribuna en cada estadio.</h1>
+    <p class="intro">La misma taquilla, con el nombre, las zonas y los precios de cada recinto de la Liga Venezolana de Béisbol Profesional. Cada estadio tiene su enlace para enviarlo a la directiva y su portal para seguir ventas y cobros.</p>
+    <ul class="estadios">
+    <li class="estadio" style="--acento:#FF8A1F">
+      <h2>Estadio Monumental Simón Bolívar</h2>
+      <p class="lugar">La Rinconada, Caracas, Distrito Capital</p>
+      <dl><div><dt>Capacidad</dt><dd>40.000</dd></div><div><dt>Zonas</dt><dd>11</dd></div><div><dt>Precios de ejemplo</dt><dd>$6–$45</dd></div></dl>
+      <div class="acciones"><a class="boton" href="/?estadio=monumental">Ver la demo</a><a class="boton claro" href="/portal/?estadio=monumental">Portal del estadio</a></div>
+      <p class="corta">Enlace corto: <a href="/monumental">tribuna.qiuagency.com/monumental</a></p>
+    </li>
+    <li class="estadio" style="--acento:#F2B632">
+      <h2>Estadio Luis Aparicio &quot;El Grande&quot;</h2>
+      <p class="lugar">Maracaibo, Zulia</p>
+      <dl><div><dt>Capacidad</dt><dd>24.000</dd></div><div><dt>Zonas</dt><dd>11</dd></div><div><dt>Precios de ejemplo</dt><dd>$5–$40</dd></div></dl>
+      <div class="acciones"><a class="boton" href="/?estadio=luis-aparicio">Ver la demo</a><a class="boton claro" href="/portal/?estadio=luis-aparicio">Portal del estadio</a></div>
+      <p class="corta">Enlace corto: <a href="/luis-aparicio">tribuna.qiuagency.com/luis-aparicio</a></p>
+    </li>
+    <li class="estadio" style="--acento:#FF5A4E">
+      <h2>Estadio Antonio Herrera Gutiérrez</h2>
+      <p class="lugar">Barquisimeto, Lara</p>
+      <dl><div><dt>Capacidad</dt><dd>20.450</dd></div><div><dt>Zonas</dt><dd>11</dd></div><div><dt>Precios de ejemplo</dt><dd>$5–$45</dd></div></dl>
+      <div class="acciones"><a class="boton" href="/?estadio=antonio-herrera">Ver la demo</a><a class="boton claro" href="/portal/?estadio=antonio-herrera">Portal del estadio</a></div>
+      <p class="corta">Enlace corto: <a href="/antonio-herrera">tribuna.qiuagency.com/antonio-herrera</a></p>
+    </li>
+    <li class="estadio" style="--acento:#3FA9F5">
+      <h2>Estadio José Bernardo Pérez</h2>
+      <p class="lugar">Valencia, Carabobo</p>
+      <dl><div><dt>Capacidad</dt><dd>16.000</dd></div><div><dt>Zonas</dt><dd>11</dd></div><div><dt>Precios de ejemplo</dt><dd>$10–$30</dd></div></dl>
+      <div class="acciones"><a class="boton" href="/?estadio=jose-bernardo-perez">Ver la demo</a><a class="boton claro" href="/portal/?estadio=jose-bernardo-perez">Portal del estadio</a></div>
+      <p class="corta">Enlace corto: <a href="/jose-bernardo-perez">tribuna.qiuagency.com/jose-bernardo-perez</a></p>
+    </li>
+    <li class="estadio" style="--acento:#FF8A1F">
+      <h2>Estadio Alfonso &quot;Chico&quot; Carrasquel</h2>
+      <p class="lugar">Puerto La Cruz, Anzoátegui</p>
+      <dl><div><dt>Capacidad</dt><dd>18.000</dd></div><div><dt>Zonas</dt><dd>11</dd></div><div><dt>Precios de ejemplo</dt><dd>$6–$38</dd></div></dl>
+      <div class="acciones"><a class="boton" href="/?estadio=chico-carrasquel">Ver la demo</a><a class="boton claro" href="/portal/?estadio=chico-carrasquel">Portal del estadio</a></div>
+      <p class="corta">Enlace corto: <a href="/chico-carrasquel">tribuna.qiuagency.com/chico-carrasquel</a></p>
+    </li>
+    <li class="estadio" style="--acento:#2EC4B6">
+      <h2>Estadio Nueva Esparta</h2>
+      <p class="lugar">Isla de Margarita, Nueva Esparta</p>
+      <dl><div><dt>Capacidad</dt><dd>18.000</dd></div><div><dt>Zonas</dt><dd>11</dd></div><div><dt>Precios de ejemplo</dt><dd>$4–$35</dd></div></dl>
+      <div class="acciones"><a class="boton" href="/?estadio=nueva-esparta">Ver la demo</a><a class="boton claro" href="/portal/?estadio=nueva-esparta">Portal del estadio</a></div>
+      <p class="corta">Enlace corto: <a href="/nueva-esparta">tribuna.qiuagency.com/nueva-esparta</a></p>
+    </li>
+    <li class="estadio" style="--acento:#4CC3FF">
+      <h2>Estadio Jorge Luis García Carneiro</h2>
+      <p class="lugar">Macuto, La Guaira</p>
+      <dl><div><dt>Capacidad</dt><dd>14.300</dd></div><div><dt>Zonas</dt><dd>11</dd></div><div><dt>Precios de ejemplo</dt><dd>$5–$60</dd></div></dl>
+      <div class="acciones"><a class="boton" href="/?estadio=la-guaira">Ver la demo</a><a class="boton claro" href="/portal/?estadio=la-guaira">Portal del estadio</a></div>
+      <p class="corta">Enlace corto: <a href="/la-guaira">tribuna.qiuagency.com/la-guaira</a></p>
+    </li>
+    <li class="estadio" style="--acento:#FFB000">
+      <h2>Estadio José Pérez Colmenares</h2>
+      <p class="lugar">Maracay, Aragua</p>
+      <dl><div><dt>Capacidad</dt><dd>12.647</dd></div><div><dt>Zonas</dt><dd>11</dd></div><div><dt>Precios de ejemplo</dt><dd>$4–$25</dd></div></dl>
+      <div class="acciones"><a class="boton" href="/?estadio=jose-perez-colmenares">Ver la demo</a><a class="boton claro" href="/portal/?estadio=jose-perez-colmenares">Portal del estadio</a></div>
+      <p class="corta">Enlace corto: <a href="/jose-perez-colmenares">tribuna.qiuagency.com/jose-perez-colmenares</a></p>
+    </li>
+    </ul>
+    <section class="otros">
+      <h2>¿Fútbol, baloncesto o conciertos?</h2>
+      <p>También se adapta al Olímpico de la UCV, al Pueblo Nuevo, al Cachamay, a los domos y a las arenas de conciertos. Cambian el plano y las vistas; la compra, los pagos y el portal funcionan igual. <a href="https://wa.me/584248831167" rel="noopener">Escríbenos por WhatsApp</a> y armamos la demo de tu recinto.</p>
+      <p>Capacidades según fuentes públicas. Las imágenes del recorrido son una recreación genérica generada con inteligencia artificial; la versión final para cada estadio usa la recreación de ese recinto.</p>
+    </section>
+  </div>
+</main>
+<footer class="pie">
+  <div class="ancho">
+    <p><strong>Sitio desarrollado por Qiu Agency, de Qiu Capital Group C.A. RIF: J508801920.</strong></p>
+    <p>Esta página es una demostración. No está afiliada a ningún equipo, liga ni estadio real. No se venden boletos y no se guarda ningún dato personal.</p>
+    <nav aria-label="Legal">
+      <a href="/privacidad.html">Política de privacidad</a>
+      <a href="/terminos.html">Términos de uso</a>
+      <button type="button" class="enlace" data-cookies>Preferencias de cookies</button>
+      <a href="https://wa.me/584248831167" rel="noopener">Contacto</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

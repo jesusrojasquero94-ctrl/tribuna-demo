@@ -1,0 +1,1173 @@
+diff --git a/404.html b/404.html
+index fb62e06..7fbc90a 100644
+--- a/404.html
++++ b/404.html
+@@ -4,6 +4,14 @@
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>Página no encontrada | Tribuna</title>
++<script>
++/* Rutas cortas por estadio: /monumental lleva a /?estadio=monumental (GitHub Pages sirve esta página para rutas desconocidas) */
++(function(){
++  var m = location.pathname.replace(/\/+$/, '').match(/^\/([a-z0-9-]+)$/);
++  var claves = ['monumental','luis-aparicio','antonio-herrera','jose-bernardo-perez','chico-carrasquel','nueva-esparta','la-guaira','jose-perez-colmenares'];
++  if (m && claves.indexOf(m[1]) >= 0) location.replace('/?estadio=' + m[1] + location.hash);
++})();
++</script>
+ <meta name="description" content="Esta página no existe. Vuelve al inicio de Tribuna, la demo de boletería inmersiva de Qiu Agency.">
+ <meta name="robots" content="noindex">
+ <meta name="theme-color" content="#070D1A">
+diff --git a/README.md b/README.md
+index 07078c9..6ac90b9 100644
+--- a/README.md
++++ b/README.md
+@@ -5,6 +5,35 @@ Demo de concepto de boletería para estadios venezolanos: eliges una zona sobre
+ - Sitio: https://tribuna.qiuagency.com
+ - Es una demostración. Los equipos, el partido y los precios son inventados; no se venden boletos ni se procesan pagos.
+ - Las imágenes del estadio son recreaciones generadas con inteligencia artificial.
+-- Sitio estático: `index.html` y las imágenes `.webp`. No necesita compilación.
++- Sitio estático: no necesita compilación para publicarse.
++
++## Páginas
++
++| Ruta | Qué es |
++| --- | --- |
++| `/` | La demo: recorrido guiado por el scroll y taquilla. |
++| `/?estadio=clave` o `/clave` | La misma demo con el nombre, las zonas, los precios y el color de un estadio. |
++| `/estadios.html` | Los 8 estadios de la LVBP con su enlace de demo y su portal. |
++| `/portal/?estadio=clave` | Portal del estadio (demo): ventas, cobros por Pago Móvil, Zelle y USDT, conciliación, cortes y CSV. |
++
++Claves: `monumental`, `luis-aparicio`, `antonio-herrera`, `jose-bernardo-perez`, `chico-carrasquel`, `nueva-esparta`, `la-guaira`, `jose-perez-colmenares`.
++
++## Añadir o cambiar un estadio
++
++1. Edita `estadios.js`: nombre, ciudad, capacidad, color y nombre y precio de cada una de las 11 zonas.
++2. Si es nuevo, añade su clave a la lista de `404.html` (rutas cortas).
++3. Vuelve a generar la página de estadios: `node herramientas/generar_estadios.js .`
++
++## Cómo carga el recorrido
++
++- `cuadros/b/` (640 px, WebP, ~3,7 MB en total) llega completo primero, empezando por las paradas.
++- Con eso el recorrido ya se puede deslizar; luego se piden cuadros de detalle solo alrededor del punto donde va el scroll, y se sueltan al alejarse:
++  `cuadros/hd/` (1920 px, AVIF, reescalados) en pantallas grandes o teléfonos de alta densidad, y `cuadros/` (960 px, WebP) en pantallas pequeñas o navegadores sin AVIF.
++- Con ahorro de datos o 2G solo se usa la base; si la red medida es lenta, la ventana de detalle se achica.
++- Entre dos cuadros vecinos se funden ambos, así el movimiento se ve continuo.
++- Las fotos de la taquilla esperan a que la taquilla esté cerca de la pantalla; en pantallas grandes se usan las versiones `-hd.webp` (2048 px).
++- `sw.js` guarda imágenes y cuadros en caché: la segunda visita abre sin volver a descargarlos. Si cambian las imágenes, sube `VERSION` en `sw.js`.
++
++Para rehacer los cuadros: `herramientas/escalar.py` reescala cada cuadro x4 con Real-ESRGAN (ncnn, CPU) y `herramientas/preparar_cuadros.py` genera la base y el HD.
+ 
+ Sitio desarrollado por Qiu Agency, de Qiu Capital Group C.A. RIF: J508801920.
+diff --git a/estadios.js b/estadios.js
+new file mode 100644
+index 0000000..8acaf84
+--- /dev/null
++++ b/estadios.js
+@@ -0,0 +1,63 @@
++/* Tribuna: un archivo por cliente. Cada estadio cambia nombre, ciudad, zonas, precios y color.
++   Se abre con /?estadio=clave o con la ruta corta /clave (la resuelve 404.html).
++   Precios por juego de ejemplo; los nombres de zona siguen la forma en que cada recinto suele venderlas.
++   Las 11 zonas dibujadas son: sc centrales, pd/pi preferencial 1B/3B, ld/li lateral 1B/3B, vip palcos,
++   cl club, td/ti tribuna alta 1B/3B, gd/gi gradas de jardín derecho/izquierdo. */
++(function(){
++  'use strict';
++  var E = {
++    'monumental': {
++      nombre: 'Estadio Monumental Simón Bolívar', corto: 'Monumental de Caracas', ciudad: 'La Rinconada, Caracas', estado: 'Distrito Capital',
++      capacidad: 40000, deporte: 'Béisbol', acento: '#FF8A1F',
++      zonas: {sc:['Sillas centrales',30], vip:['VIP',45], cl:['Club 600',25], pd:['Zona 1 primera base',20], pi:['Zona 1 tercera base',20],
++              ld:['Zona 2 primera base',13], li:['Zona 2 tercera base',13], td:['Zona 3 primera base',8], ti:['Zona 3 tercera base',8], gd:['Jardín derecho',6], gi:['Jardín izquierdo',6]}
++    },
++    'luis-aparicio': {
++      nombre: 'Estadio Luis Aparicio "El Grande"', corto: 'Luis Aparicio', ciudad: 'Maracaibo', estado: 'Zulia',
++      capacidad: 24000, deporte: 'Béisbol', acento: '#F2B632',
++      zonas: {sc:['Sillas centrales',25], vip:['Palcos VIP',40], cl:['Club',22], pd:['Preferencial primera base',16], pi:['Preferencial tercera base',16],
++              ld:['Lateral primera base',11], li:['Lateral tercera base',11], td:['Tribuna alta primera base',7], ti:['Tribuna alta tercera base',7], gd:['Gradas jardín derecho',5], gi:['Gradas jardín izquierdo',5]}
++    },
++    'antonio-herrera': {
++      nombre: 'Estadio Antonio Herrera Gutiérrez', corto: 'Antonio Herrera Gutiérrez', ciudad: 'Barquisimeto', estado: 'Lara',
++      capacidad: 20450, deporte: 'Béisbol', acento: '#FF5A4E',
++      zonas: {sc:['Central',22], vip:['VIP Terreno',45], cl:['VIP Gold',35], pd:['VIP Premium primera base',18], pi:['VIP Premium tercera base',18],
++              ld:['Lateral primera base',10], li:['Lateral tercera base',10], td:['Preferencial primera base',7], ti:['Preferencial tercera base',7], gd:['Gradas jardín derecho',5], gi:['Gradas jardín izquierdo',5]}
++    },
++    'jose-bernardo-perez': {
++      nombre: 'Estadio José Bernardo Pérez', corto: 'José Bernardo Pérez', ciudad: 'Valencia', estado: 'Carabobo',
++      capacidad: 16000, deporte: 'Béisbol', acento: '#3FA9F5',
++      zonas: {sc:['Tribuna principal',30], vip:['Terraza',30], cl:['Tribuna central',24], pd:['Box A primera base',20], pi:['Box A tercera base',20],
++              ld:['Lateral baja primera base',16], li:['Lateral baja tercera base',16], td:['Lateral alta primera base',12], ti:['Lateral alta tercera base',12], gd:['Box B jardín derecho',10], gi:['Box B jardín izquierdo',10]}
++    },
++    'chico-carrasquel': {
++      nombre: 'Estadio Alfonso "Chico" Carrasquel', corto: 'Chico Carrasquel', ciudad: 'Puerto La Cruz', estado: 'Anzoátegui',
++      capacidad: 18000, deporte: 'Béisbol', acento: '#FF8A1F',
++      zonas: {sc:['Sillas centrales',25], vip:['Palcos VIP',38], cl:['Club',20], pd:['Preferencial primera base',15], pi:['Preferencial tercera base',15],
++              ld:['Lateral primera base',10], li:['Lateral tercera base',10], td:['Tribuna alta primera base',7], ti:['Tribuna alta tercera base',7], gd:['Gradas jardín derecho',6], gi:['Gradas jardín izquierdo',6]}
++    },
++    'nueva-esparta': {
++      nombre: 'Estadio Nueva Esparta', corto: 'Nueva Esparta', ciudad: 'Isla de Margarita', estado: 'Nueva Esparta',
++      capacidad: 18000, deporte: 'Béisbol', acento: '#2EC4B6',
++      zonas: {sc:['Sillas inferiores',14], vip:['Sillas VIP terreno',35], cl:['Sillas VIP',20], pd:['Palco primera base',20], pi:['Palco tercera base',20],
++              ld:['Sillas laterales primera base',6], li:['Sillas laterales tercera base',6], td:['Sillas superiores primera base',5], ti:['Sillas superiores tercera base',5], gd:['Gradas jardín derecho',4], gi:['Gradas jardín izquierdo',4]}
++    },
++    'la-guaira': {
++      nombre: 'Estadio Jorge Luis García Carneiro', corto: 'Estadio de La Guaira', ciudad: 'Macuto', estado: 'La Guaira',
++      capacidad: 14300, deporte: 'Béisbol', acento: '#4CC3FF',
++      zonas: {sc:['Sillas centrales',30], vip:['Palco terreno y central',60], cl:['Palco central',45], pd:['Terreno lateral primera base',20], pi:['Terreno lateral tercera base',20],
++              ld:['Zona 1 primera base',14], li:['Zona 1 tercera base',14], td:['Zona 2 primera base',9], ti:['Zona 2 tercera base',9], gd:['Zona 3 jardín derecho',5], gi:['Zona 3 jardín izquierdo',5]}
++    },
++    'jose-perez-colmenares': {
++      nombre: 'Estadio José Pérez Colmenares', corto: 'José Pérez Colmenares', ciudad: 'Maracay', estado: 'Aragua',
++      capacidad: 12647, deporte: 'Béisbol', acento: '#FFB000',
++      zonas: {sc:['Central con malla',10], vip:['Palco terreno',25], cl:['Palco central',18], pd:['Central sin malla primera base',8], pi:['Central sin malla tercera base',8],
++              ld:['Lateral primera base',7], li:['Lateral tercera base',7], td:['Tribuna alta primera base',5], ti:['Tribuna alta tercera base',5], gd:['Gradas jardín derecho',4], gi:['Gradas jardín izquierdo',4]}
++    }
++  };
++  window.TRIBUNA_ESTADIOS = E;
++  // Estadio pedido en la dirección: ?estadio=clave
++  var clave = null;
++  try { clave = new URLSearchParams(location.search).get('estadio'); } catch (e) {}
++  window.TRIBUNA_ESTADIO = clave && E[clave] ? Object.assign({clave: clave}, E[clave]) : null;
++})();
+diff --git a/herramientas/escalar.py b/herramientas/escalar.py
+new file mode 100644
+index 0000000..8ab61b0
+--- /dev/null
++++ b/herramientas/escalar.py
+@@ -0,0 +1,36 @@
++"""Escala cuadros con un modelo ncnn 4x (Real-ESRGAN) en CPU, por mosaicos.
++
++Uso: python3 escalar.py MODELO ENTRADA.webp SALIDA.png [mosaico]
++"""
++import sys
++import numpy as np
++import ncnn
++from PIL import Image
++
++modelo, entrada, salida = sys.argv[1], sys.argv[2], sys.argv[3]
++T = int(sys.argv[4]) if len(sys.argv) > 4 else 200
++PAD = 10
++S = 4
++
++net = ncnn.Net()
++net.opt.use_vulkan_compute = False
++net.opt.num_threads = 2
++net.load_param(modelo + ".param")
++net.load_model(modelo + ".bin")
++
++im = np.asarray(Image.open(entrada).convert("RGB"), dtype=np.float32) / 255.0
++H, W, _ = im.shape
++out = np.zeros((H * S, W * S, 3), dtype=np.float32)
++for y in range(0, H, T):
++    for x in range(0, W, T):
++        y0, x0 = max(0, y - PAD), max(0, x - PAD)
++        y1, x1 = min(H, y + T + PAD), min(W, x + T + PAD)
++        tile = np.ascontiguousarray(im[y0:y1, x0:x1].transpose(2, 0, 1))
++        ex = net.create_extractor()
++        ex.input("data", ncnn.Mat(tile))
++        _, r = ex.extract("output")
++        r = np.array(r).transpose(1, 2, 0)
++        ty, tx = (y - y0) * S, (x - x0) * S
++        hh, ww = min(T, H - y) * S, min(T, W - x) * S
++        out[y * S:y * S + hh, x * S:x * S + ww] = r[ty:ty + hh, tx:tx + ww]
++Image.fromarray((np.clip(out, 0, 1) * 255 + .5).astype(np.uint8)).save(salida)
+diff --git a/herramientas/generar_estadios.js b/herramientas/generar_estadios.js
+new file mode 100644
+index 0000000..f72390c
+--- /dev/null
++++ b/herramientas/generar_estadios.js
+@@ -0,0 +1,94 @@
++// Genera estadios.html a partir de estadios.js (se vuelve a correr si cambia la lista)
++const fs = require('fs'), path = require('path'), vm = require('vm');
++const raiz = process.argv[2];
++const ctx = {window: {}, location: {search: ''}, URLSearchParams};
++vm.runInNewContext(fs.readFileSync(path.join(raiz, 'estadios.js'), 'utf8'), ctx);
++const E = ctx.window.TRIBUNA_ESTADIOS;
++const p404 = fs.readFileSync(path.join(raiz, '404.html'), 'utf8');
++const simbolo = p404.match(/<svg width="0"[\s\S]*?<\/svg>/)[0];
++const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
++const miles = n => n.toLocaleString('es-VE');
++const tarjetas = Object.entries(E).map(([k, e]) => {
++  const ps = Object.values(e.zonas).map(z => z[1]);
++  return `    <li class="estadio" style="--acento:${e.acento}">
++      <h2>${esc(e.nombre)}</h2>
++      <p class="lugar">${esc(e.ciudad)}, ${esc(e.estado)}</p>
++      <dl><div><dt>Capacidad</dt><dd>${miles(e.capacidad)}</dd></div><div><dt>Zonas</dt><dd>${ps.length}</dd></div><div><dt>Precios de ejemplo</dt><dd>$${Math.min(...ps)}–$${Math.max(...ps)}</dd></div></dl>
++      <div class="acciones"><a class="boton" href="/?estadio=${k}">Ver la demo</a><a class="boton claro" href="/portal/?estadio=${k}">Portal del estadio</a></div>
++      <p class="corta">Enlace corto: <a href="/${k}">tribuna.qiuagency.com/${k}</a></p>
++    </li>`;
++}).join('\n');
++const n = Object.keys(E).length;
++const html = `<!doctype html>
++<html lang="es-VE">
++<head>
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1">
++<title>Estadios | Tribuna, boletería inmersiva para Venezuela</title>
++<meta name="description" content="La demo de Tribuna adaptada a ${n} estadios de la LVBP: Caracas, Maracaibo, Barquisimeto, Valencia, Puerto La Cruz, Margarita, La Guaira y Maracay.">
++<meta name="theme-color" content="#070D1A">
++<meta name="color-scheme" content="dark">
++<link rel="canonical" href="https://tribuna.qiuagency.com/estadios.html">
++<link rel="icon" href="/favicon.ico" sizes="48x48">
++<link rel="icon" href="/icono.svg" type="image/svg+xml">
++<link rel="apple-touch-icon" href="/apple-touch-icon.png">
++<link rel="manifest" href="/site.webmanifest">
++<link rel="stylesheet" href="/legal.css">
++<script src="/consentimiento.js" defer></script>
++<style>
++.texto{max-width:1180px}
++.intro{max-width:64ch;color:#DCE4F2;margin:0 0 36px}
++.estadios{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px}
++.estadio{background:#0A1222;border:1px solid var(--borde);border-top:4px solid var(--acento);border-radius:18px;padding:20px 20px 16px;display:flex;flex-direction:column}
++.estadio h2{font-family:var(--titulo);font-weight:800;font-size:30px;line-height:1;margin:0 0 6px}
++.lugar{margin:0 0 16px;color:var(--suave)}
++.estadio dl{display:grid;grid-template-columns:repeat(3,auto);gap:10px;margin:0 0 4px}
++.estadio dt{font-size:13px;color:var(--suave)}
++.estadio dd{margin:0;font-weight:700;font-size:19px;font-variant-numeric:tabular-nums}
++.estadio .acciones{margin-top:16px}
++.estadio .boton{font-size:15px;padding:11px 16px}
++.estadio .boton:not(.claro){background:var(--acento)}
++.corta{margin:14px 0 0;font-size:14px;color:var(--suave);margin-top:auto;padding-top:14px}
++.otros{margin-top:56px;max-width:72ch}
++</style>
++</head>
++<body>
++<a class="salto" href="#contenido">Saltar al contenido</a>
++${simbolo}
++<header class="cabecera">
++  <div class="ancho">
++    <a class="chip marca" href="/" aria-label="Tribuna, inicio"><svg viewBox="0 0 709 447" aria-hidden="true"><use href="#simbolo"/></svg>Tribuna</a>
++    <a class="chip ir" href="/portal/">Portal del cliente</a>
++  </div>
++</header>
++<main id="contenido">
++  <div class="ancho texto">
++    <h1>Tribuna en cada estadio.</h1>
++    <p class="intro">La misma taquilla, con el nombre, las zonas y los precios de cada recinto de la Liga Venezolana de Béisbol Profesional. Cada estadio tiene su enlace para enviarlo a la directiva y su portal para seguir ventas y cobros.</p>
++    <ul class="estadios">
++${tarjetas}
++    </ul>
++    <section class="otros">
++      <h2>¿Fútbol, baloncesto o conciertos?</h2>
++      <p>También se adapta al Olímpico de la UCV, al Pueblo Nuevo, al Cachamay, a los domos y a las arenas de conciertos. Cambian el plano y las vistas; la compra, los pagos y el portal funcionan igual. <a href="https://wa.me/584248831167" rel="noopener">Escríbenos por WhatsApp</a> y armamos la demo de tu recinto.</p>
++      <p>Capacidades según fuentes públicas. Las imágenes del recorrido son una recreación genérica generada con inteligencia artificial; la versión final para cada estadio usa la recreación de ese recinto.</p>
++    </section>
++  </div>
++</main>
++<footer class="pie">
++  <div class="ancho">
++    <p><strong>Sitio desarrollado por Qiu Agency, de Qiu Capital Group C.A. RIF: J508801920.</strong></p>
++    <p>Esta página es una demostración. No está afiliada a ningún equipo, liga ni estadio real. No se venden boletos y no se guarda ningún dato personal.</p>
++    <nav aria-label="Legal">
++      <a href="/privacidad.html">Política de privacidad</a>
++      <a href="/terminos.html">Términos de uso</a>
++      <button type="button" class="enlace" data-cookies>Preferencias de cookies</button>
++      <a href="https://wa.me/584248831167" rel="noopener">Contacto</a>
++    </nav>
++  </div>
++</footer>
++</body>
++</html>
++`;
++fs.writeFileSync(path.join(raiz, 'estadios.html'), html);
++console.log('estadios.html', html.length);
+diff --git a/herramientas/preparar_cuadros.py b/herramientas/preparar_cuadros.py
+new file mode 100644
+index 0000000..550ea1a
+--- /dev/null
++++ b/herramientas/preparar_cuadros.py
+@@ -0,0 +1,40 @@
++"""Prepara los juegos de cuadros del recorrido y las fotos HD de la taquilla.
++
++  python3 herramientas/preparar_cuadros.py DIR_ESCALADOS
++
++DIR_ESCALADOS tiene los cuadros reescalados x4 (001.png ... 180.png) que deja escalar.py.
++Genera:
++  cuadros/b/NNN.webp   640x360, WebP calidad 50  (base: llega completa primero)
++  cuadros/hd/NNN.avif  1920x1080, AVIF calidad 50 (detalle alrededor del scroll)
++  cuadros/NNN.webp     se quedan como están (960 px, detalle sin AVIF)
++Necesita Pillow con soporte AVIF.
++"""
++import glob
++import os
++import sys
++from concurrent.futures import ProcessPoolExecutor
++
++from PIL import Image
++
++RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
++
++
++def base(f):
++    n = os.path.basename(f)
++    Image.open(f).convert("RGB").resize((640, 360), Image.LANCZOS).save(os.path.join(RAIZ, "cuadros/b", n), quality=50, method=6)
++
++
++def hd(f):
++    n = os.path.splitext(os.path.basename(f))[0]
++    Image.open(f).convert("RGB").resize((1920, 1080), Image.LANCZOS).save(os.path.join(RAIZ, "cuadros/hd", n + ".avif"), quality=50, speed=6)
++
++
++if __name__ == "__main__":
++    os.makedirs(os.path.join(RAIZ, "cuadros/b"), exist_ok=True)
++    os.makedirs(os.path.join(RAIZ, "cuadros/hd"), exist_ok=True)
++    originales = sorted(glob.glob(os.path.join(RAIZ, "cuadros/[0-9][0-9][0-9].webp")))
++    escalados = sorted(glob.glob(os.path.join(sys.argv[1], "[0-9][0-9][0-9].png"))) if len(sys.argv) > 1 else []
++    with ProcessPoolExecutor() as ex:
++        list(ex.map(base, originales))
++        list(ex.map(hd, escalados))
++    print(len(originales), "base,", len(escalados), "hd")
+diff --git a/index.html b/index.html
+index bb8c2af..e70794b 100644
+--- a/index.html
++++ b/index.html
+@@ -28,6 +28,7 @@
+ <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+ <link rel="manifest" href="/site.webmanifest">
+ <link rel="preload" as="image" href="poster.webp" fetchpriority="high">
++<link rel="preload" as="image" href="cuadros/b/001.webp">
+ <link rel="preload" as="font" type="font/woff2" href="fuentes/titulo-800.woff2" crossorigin>
+ <link rel="preload" as="font" type="font/woff2" href="fuentes/texto-400.woff2" crossorigin>
+ <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebSite", "name": "Tribuna", "url": "https://tribuna.qiuagency.com/", "inLanguage": "es-VE", "publisher": {"@type": "Organization", "name": "Qiu Agency", "url": "https://qiuagency.com/", "parentOrganization": {"@type": "Organization", "legalName": "Qiu Capital Group C.A."}}}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "¿Puedo comprar boletos reales en esta página?", "acceptedAnswer": {"@type": "Answer", "text": "No. Tribuna es una demostración de Qiu Agency. Los equipos, el partido y los precios son inventados, y los pagos son simulados."}}, {"@type": "Question", "name": "¿Qué estadios se pueden recrear?", "acceptedAnswer": {"@type": "Answer", "text": "Cualquier estadio o arena del país: béisbol, fútbol, baloncesto o conciertos. Recreamos el recinto en video, zona por zona, con la vista desde cada sector."}}, {"@type": "Question", "name": "¿Con qué métodos de pago funciona?", "acceptedAnswer": {"@type": "Answer", "text": "La experiencia está pensada para Pago Móvil, Zelle y USDT, conectados a la pasarela que ya usa tu boletería. En esta demo ningún pago es real."}}, {"@type": "Question", "name": "¿Reemplaza mi sistema de boletería?", "acceptedAnswer": {"@type": "Answer", "text": "No. Se conecta a él. El inventario, los precios y la pasarela de pago siguen siendo tuyos; Tribuna pone la experiencia de elegir el puesto."}}, {"@type": "Question", "name": "¿Funciona en teléfonos con datos móviles?", "acceptedAnswer": {"@type": "Answer", "text": "Sí. El recorrido se descarga por partes, empezando por lo primero que ves, para que abra rápido aunque la señal sea floja."}}, {"@type": "Question", "name": "¿Qué datos guarda esta página?", "acceptedAnswer": {"@type": "Answer", "text": "Ninguno personal. Solo recuerda en tu navegador si aceptaste o rechazaste las cookies de estadística, que se activan únicamente si las aceptas."}}]}]</script>
+@@ -253,6 +254,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+ .preguntas a{color:#fff;text-underline-offset:3px}
+ 
+ /* Pie */
++.enlaces-equipos{display:flex;flex-wrap:wrap;gap:10px}
+ .pie nav{display:flex;flex-wrap:wrap;gap:8px 22px;margin:14px 0 0;font-size:14px}
+ .pie nav a,.pie nav .enlace{color:#DCE4F2;text-underline-offset:3px;min-height:32px;display:inline-flex;align-items:center}
+ .pie nav a:hover,.pie nav .enlace:hover{color:#fff}
+@@ -378,6 +380,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+     <div class="dos">
+       <div>
+         <p>Tribuna no reemplaza tu boletería: se conecta a ella. El inventario, los precios y la pasarela de pago siguen siendo tuyos. Nosotros ponemos la experiencia de elegir el puesto.</p>
++        <p class="enlaces-equipos"><a class="boton claro" href="/estadios.html">Ver la demo en cada estadio</a> <a class="boton claro" href="/portal/" data-con-estadio>Abrir el portal del cliente</a></p>
+         <p id="contacto" hidden></p>
+       </div>
+       <ul>
+@@ -385,6 +388,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+         <li>Funciona para béisbol, fútbol, baloncesto y conciertos.</li>
+         <li>Precios distintos para clásicos, abonos y palcos, con pago en cuotas para los abonos.</li>
+         <li>Sale con tu marca y en tu dominio.</li>
++        <li>Portal para el estadio: ventas, cobros por Pago Móvil, Zelle y USDT, conciliación y liquidaciones en tiempo real.</li>
+       </ul>
+     </div>
+   </div>
+@@ -408,10 +412,12 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+ <footer class="pie">
+   <div class="ancho">
+     <p><strong>Sitio desarrollado por Qiu Agency, de Qiu Capital Group C.A. RIF: J508801920.</strong></p>
+-    <p>Esta página es una demostración. Los equipos "Cóndores" y "Corsarios" no existen. El estadio es una recreación generada con inteligencia artificial, inspirada en el Monumental de Caracas; no es una imagen del estadio real. El sitio no está afiliado a ningún equipo, liga ni estadio real. No se venden boletos y no se guarda ningún dato personal.</p>
++    <p>Esta página es una demostración. Los equipos "Cóndores" y "Corsarios" no existen. <span data-nota-estadio>El estadio es una recreación generada con inteligencia artificial, inspirada en el Monumental de Caracas; no es una imagen del estadio real.</span> El sitio no está afiliado a ningún equipo, liga ni estadio real. No se venden boletos y no se guarda ningún dato personal.</p>
+     <nav aria-label="Legal">
+       <a href="/privacidad.html">Política de privacidad</a>
+       <a href="/terminos.html">Términos de uso</a>
++      <a href="/estadios.html">Estadios</a>
++      <a href="/portal/" data-con-estadio>Portal del cliente</a>
+       <button type="button" class="enlace" data-cookies>Preferencias de cookies</button>
+       <a href="https://wa.me/584248831167" rel="noopener">Contacto</a>
+     </nav>
+@@ -423,18 +429,22 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+ <script>
+ (function(){var a=document.getElementById('aviso');function m(){document.documentElement.style.setProperty('--aviso-h',a.offsetHeight+'px')}m();window.addEventListener('resize',m)})();
+ </script>
++<script src="estadios.js"></script>
+ <script>
+ /* Recorrido: los cuadros de los videos avanzan con el scroll y se detienen en tres paradas donde se puede elegir */
+ (function(){
+   'use strict';
+-  var C = window.TRIBUNA_CUADROS = {"base": "cuadros/", "ext": ".webp", "n": 180, "clips": [60, 60, 60]};
++  /* Tres juegos de cuadros: b = base liviana (640 px, WebP) que llega completa primero;
++     cuadros/ = 960 px WebP; hd/ = 1920 px AVIF reescalados. Los de detalle se piden solo
++     alrededor del punto donde va el scroll y se sueltan al alejarse, para no llenar la memoria. */
++  var C = window.TRIBUNA_CUADROS = {n: 180, clips: [60, 60, 60], base: 'cuadros/b/', med: 'cuadros/', hd: 'cuadros/hd/'};
+   var hist = document.getElementById('historia'), cv = document.getElementById('secuencia');
+   if (!hist || !cv || !cv.getContext) return;
+   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+   var fijo = hist.querySelector('.fijo'), capa = document.getElementById('paradas'), globo = document.getElementById('globoH');
+   var cajaMomentos = hist.querySelector('.momentos'), cabeza = hist.querySelector('.cabeza');
+-  var g = cv.getContext('2d'), textos = Array.prototype.slice.call(hist.querySelectorAll('.momento')), barra = hist.querySelector('.carga i');
+-  var N = C.n, cuadros = new Array(N), listos = 0, ancho = 0, alto = 0, dpr = 1, ultimo = '';
++  var g = cv.getContext('2d', {alpha: false}), textos = Array.prototype.slice.call(hist.querySelectorAll('.momento')), barra = hist.querySelector('.carga i');
++  var N = C.n, base = new Array(N), fino = new Array(N), listos = 0, ancho = 0, alto = 0, dpr = 1, ultimo = '';
+   var W = .012;
+   hist.classList.remove('sinvideo');
+ 
+@@ -445,23 +455,76 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+   var FOCOS = {zonas:{ancho:[240,150,785,515], alto:[240,150,785,515]}, asientos:{ancho:[62,62,922,520], alto:[205,62,820,520]}, palco:{ancho:[0,250,1024,576], alto:[190,250,834,576]}};
+   var RANGOS = textos.map(function(el){ return el.getAttribute('data-r').split(',').map(Number); });
+ 
+-  function ruta(i){ var s = String(i + 1); while (s.length < 3) s = '0' + s; return C.base + s + C.ext; }
+-  // Orden de carga: primero uno de cada 16, luego de 8, de 4, de 2 y el resto
+-  var orden = [], visto = {};
++  function num(i){ var s = String(i + 1); while (s.length < 3) s = '0' + s; return s; }
++  // Red: con ahorro de datos o 2G no se piden cuadros de detalle salvo los de las paradas
++  var red = navigator.connection || {}, ahorro = !!red.saveData || /(^|-)2g$/.test(red.effectiveType || '');
++  var avif = false, prueba = new Image();
++  prueba.onload = function(){ avif = prueba.width > 0; elegirDetalle(); };
++  prueba.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADrbWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAAAAAAAOcGl0bQAAAAAAAQAAAB5pbG9jAAAAAEQAAAEAAQAAAAEAAAETAAAAKAAAAChpaW5mAAAAAAABAAAAGmluZmUCAAAAAAEAAGF2MDFDb2xvcgAAAABqaXBycAAAAEtpcGNvAAAAFGlzcGUAAAAAAAAAAQAAAAEAAAAQcGl4aQAAAAADCAgIAAAADGF2MUOBAAwAAAAAE2NvbHJuY2x4AAEADQAGgAAAABdpcG1hAAAAAAAAAAEAAQQBAoMEAAAAMG1kYXQSAAoIGAAGiAhoNCAyGhlHh4Yhh5555oAAAJBAyRxhSytNj1FFTqSg';
++
++  // Orden de la base: las paradas, luego uno de cada 16, de 8, de 4, de 2 y el resto
++  var orden = [], visto = {}, PARADAS_C = [0, 59, 60, 119, 120, 179];
++  PARADAS_C.forEach(function(i){ visto[i] = 1; orden.push(i); });
+   [16, 8, 4, 2, 1].forEach(function(paso){ for (var i = 0; i < N; i += paso) if (!visto[i]) { visto[i] = 1; orden.push(i); } });
+-  [60, 120, 179].forEach(function(i, k){ orden.splice(orden.indexOf(i), 1); orden.splice(1 + k, 0, i); });
+-  var siguiente = 0, activos = 0;
++  var siguiente = 0, activos = 0, kbps = [];
+   function cargar(){
+     while (activos < 6 && siguiente < orden.length) {
+       (function(i){
+-        var im = new Image(); activos++;
++        var im = new Image(), t0 = performance.now(); activos++;
+         im.decoding = 'async';
+-        im.onload = function(){ cuadros[i] = im; listos++; activos--; barra.style.width = (100 * listos / N).toFixed(1) + '%'; if (listos === N) hist.classList.add('cargado'); ultimo = ''; pedir(); cargar(); };
++        im.onload = function(){
++          base[i] = im; listos++; activos--;
++          medirRed(im.src, performance.now() - t0);
++          barra.style.width = (100 * listos / N).toFixed(1) + '%'; if (listos === N) hist.classList.add('cargado');
++          if (cerca(i)) ultimo = '';
++          pedir(); cargar(); cargarDetalle();
++        };
+         im.onerror = function(){ activos--; cargar(); };
+-        im.src = ruta(i);
++        im.src = C.base + num(i) + '.webp';
+       })(orden[siguiente++]);
+     }
+   }
++  function medirRed(src, ms){
++    var e = performance.getEntriesByName && performance.getEntriesByName(src)[0], b = e && (e.encodedBodySize || e.transferSize);
++    if (b && ms > 20 && kbps.length < 40) kbps.push(b * 8 / ms);
++  }
++  function redLenta(){ if (kbps.length < 8) return false; var s = kbps.slice().sort(function(a, b){ return a - b; }); return s[s.length >> 1] < 1500; }
++
++  /* ---------- Detalle alrededor del scroll ---------- */
++  var detalle = null, enCurso = {}, fallo = {}, activosD = 0, centro = 0, haciaAdelante = true;
++  function elegirDetalle(){
++    // Ancho real con que se pinta el cuadro en pantalla (cubre el visor)
++    var px = 1024 * Math.max((fijo.clientWidth || 1) / 1024, (fijo.clientHeight || 1) / 576) * Math.min(window.devicePixelRatio || 1, 2);
++    var nuevo = px > 1150 && avif ? 'hd' : px > 700 ? 'med' : null;
++    if (nuevo !== detalle) { detalle = nuevo; fino = new Array(N); enCurso = {}; fallo = {}; ultimo = ''; cargarDetalle(); }
++  }
++  function cerca(i){ return Math.abs(i - centro) <= 1.5; }
++  function radio(){ return ahorro ? 0 : redLenta() ? 3 : detalle === 'hd' ? (window.innerWidth < 900 ? 10 : 16) : 14; }
++  function deseados(){
++    // Mientras llega la base, solo el detalle de lo que está en pantalla
++    var r = listos < N ? Math.min(2, radio()) : radio(), lista = [], d, a = haciaAdelante ? 1 : -1, c = Math.round(centro);
++    for (d = 0; d <= r; d++) { lista.push(c + a * d); if (d && d <= r / 2) lista.push(c - a * d); }
++    if (listos === N) PARADAS_C.forEach(function(i){ lista.push(i); });
++    return lista.filter(function(i){ return i >= 0 && i < N; });
++  }
++  function cargarDetalle(){
++    if (!detalle || listos < 24) return;
++    var lista = deseados(), guardar = {}, r = radio();
++    lista.forEach(function(i){ guardar[i] = 1; });
++    // Soltar lo que quedó lejos
++    for (var k = 0; k < N; k++) if (fino[k] && !guardar[k] && Math.abs(k - centro) > r + 6) fino[k] = null;
++    for (var j = 0; j < lista.length && activosD < 3; j++) {
++      var i = lista[j]; if (fino[i] || enCurso[i] || fallo[i] || !base[i]) continue;
++      (function(i, nivel){
++        var im = new Image(); enCurso[i] = 1; activosD++;
++        im.decoding = 'async'; if ('fetchPriority' in im) im.fetchPriority = 'low';
++        var listo = function(){ delete enCurso[i]; activosD--; if (nivel === detalle) { fino[i] = im; if (cerca(i)) { ultimo = ''; pedir(); } } cargarDetalle(); };
++        im.onload = function(){ im.decode ? im.decode().then(listo, listo) : listo(); };
++        im.onerror = function(){ delete enCurso[i]; fallo[i] = 1; activosD--; };
++        im.src = nivel === 'hd' ? C.hd + num(i) + '.avif' : C.med + num(i) + '.webp';
++      })(i, detalle);
++    }
++  }
+   cargar();
+ 
+   /* ---------- Medidas y cámara ---------- */
+@@ -469,7 +532,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+   function medir(){
+     dpr = Math.min(window.devicePixelRatio || 1, 2);
+     var w = Math.round(cv.clientWidth * dpr), h = Math.round(cv.clientHeight * dpr);
+-    if (w && h && (w !== ancho || h !== alto)) { ancho = cv.width = w; alto = cv.height = h; ultimo = ''; regiones(); }
++    if (w && h && (w !== ancho || h !== alto)) { ancho = cv.width = w; alto = cv.height = h; ultimo = ''; regiones(); elegirDetalle(); }
+   }
+   // Zona libre de la pantalla donde cabe el estadio en cada parada (lo que no tapa el texto)
+   function regiones(){
+@@ -501,7 +564,8 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+   }
+ 
+   /* ---------- Dibujo ---------- */
+-  function cercano(i){ if (cuadros[i]) return cuadros[i]; for (var d = 1; d < N; d++) { if (cuadros[i - d]) return cuadros[i - d]; if (cuadros[i + d]) return cuadros[i + d]; } return null; }
++  function mejor(i){ return fino[i] || base[i] || null; }
++  function cercano(i){ var m = mejor(i); if (m) return m; for (var d = 1; d < N; d++) { if (m = mejor(i - d)) return m; if (m = mejor(i + d)) return m; } return null; }
+   // Al final de cada clip el último tramo se funde con el primer cuadro del siguiente, que es una parada
+   var BORDES = [], acum = 0; C.clips.slice(0, -1).forEach(function(n){ acum += n; BORDES.push(acum); });
+   var FUNDIDO = 6;
+@@ -520,7 +584,9 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+         pintarIm(cercano(Math.min(BORDES[b] - 1, Math.round(x))), 1, r); pintarIm(cercano(BORDES[b]), t, r); return;
+       }
+     }
+-    pintarIm(cercano(Math.round(x)), 1, r);
++    // Entre dos cuadros vecinos se funden ambos: el movimiento se ve continuo aunque el scroll vaya lento
++    var i0 = Math.floor(x), f = x - i0, a = cercano(i0), b2 = f > .04 && i0 + 1 < N && BORDES.indexOf(i0 + 1) < 0 ? mejor(i0 + 1) : null;
++    pintarIm(a, 1, r); if (b2 && b2 !== a) pintarIm(b2, f, r);
+   }
+   function dibujar(x, cam){
+     var r = [cam.ox * dpr, cam.oy * dpr, 1024 * cam.s * dpr, 576 * cam.s * dpr];
+@@ -536,7 +602,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+   function cuadroDe(p){
+     for (var k = 0; k < SEGS.length; k++) {
+       var s = SEGS[k];
+-      if (p <= s[1] || k === SEGS.length - 1) { var t = s[1] > s[0] ? Math.min(1, Math.max(0, (p - s[0]) / (s[1] - s[0]))) : 0; return Math.round((s[2] + (s[3] - s[2]) * t) * 4) / 4; }
++      if (p <= s[1] || k === SEGS.length - 1) { var t = s[1] > s[0] ? Math.min(1, Math.max(0, (p - s[0]) / (s[1] - s[0]))) : 0; return Math.round((s[2] + (s[3] - s[2]) * t) * 16) / 16; }
+     }
+     return 0;
+   }
+@@ -577,8 +643,9 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+     corriendo = 0; leer(); medir();
+     actual += (objetivo - actual) * .14; if (Math.abs(objetivo - actual) < .0003) actual = objetivo;
+     var i = cuadroDe(actual), cam = camara(actual);
++    if (Math.abs(i - centro) >= 1) { haciaAdelante = i > centro; centro = i; cargarDetalle(); }
+     var clave = i + '|' + cam.s.toFixed(4) + '|' + cam.ox.toFixed(1) + '|' + cam.oy.toFixed(1);
+-    if (clave !== ultimo && listos) { dibujar(i, cam); if (cuadros[Math.round(i)]) ultimo = clave; }
++    if (clave !== ultimo && listos) { dibujar(i, cam); if (base[Math.floor(i)] && base[Math.min(N - 1, Math.ceil(i))]) ultimo = clave; }
+     textosEn(actual); capaEn(cam);
+     if (actual !== objetivo || ultimo !== clave) corriendo = requestAnimationFrame(paso);
+   }
+@@ -641,7 +708,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+   function pintarFichas(){
+     var f = {}, p = S.puesto, z;
+     if (S.zona) { z = zona(S.zona); f.zonas = dato(esc(z.n), '$' + z.precio + ' por asiento, ' + T.libres(z.id) + ' libres') + boton('asientos', 'Ver sus asientos'); }
+-    else f.zonas = dato('11 zonas', 'De $5 a $40 por asiento') + boton('asientos', 'Ver asientos', true);
++    else { var ps = T.zonas.map(function(q){ return q.precio; }); f.zonas = dato(T.zonas.length + ' zonas', 'De $' + Math.min.apply(null, ps) + ' a $' + Math.max.apply(null, ps) + ' por asiento') + boton('asientos', 'Ver asientos', true); }
+     z = zona(zonaAsientos());
+     if (p && p.z !== 'vip') f.asientos = dato(nombrePuesto(p), esc(z.n) + ', $' + z.precio) + boton('reservar', 'Reservar') + boton('tuyo', 'Seguir', true);
+     else f.asientos = dato(esc(z.n), '$' + z.precio + ' por asiento, ' + T.libres(z.id) + ' libres') + boton('zonas', 'Cambiar zona', true);
+@@ -705,7 +772,8 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
+ 'use strict';
+ /* ---------- Datos de la demo (todo ficticio) ---------- */
+ var CONTACTO = 'https://wa.me/584248831167';
+-var PARTIDO = {local:'Cóndores', visita:'Corsarios', fecha:'Sábado 5 de diciembre, 7:00 p. m.', lugar:'Estadio de demostración, inspirado en el Monumental de Caracas'};
++var EST = window.TRIBUNA_ESTADIO;
++var PARTIDO = {local:'Cóndores', visita:'Corsarios', fecha:'Sábado 5 de diciembre, 7:00 p. m.', lugar: EST ? EST.nombre + ', ' + EST.ciudad : 'Estadio de demostración, inspirado en el Monumental de Caracas'};
+ var MAX = 6;
+ var ZONAS = [
+   {id:'sc', n:'Sillas centrales',          precio:20, occ:46, v:{img:'vista-home-w',   zoom:1.12, cy:300}},
+@@ -721,6 +789,12 @@ var ZONAS = [
+   {id:'gi', n:'Gradas jardín izquierdo',   precio:5,  occ:15, v:{img:'vista-jardin-w', zoom:1,    cy:288, flip:true}}
+ ];
+ var LETRAS = 'ABCDEFGH';
++// Cada estadio pone sus nombres de zona y sus precios sobre las mismas 11 zonas dibujadas
++if (EST && EST.zonas) ZONAS.forEach(function(z){ var o = EST.zonas[z.id]; if (o) { z.n = o[0]; z.precio = o[1]; } });
++
++/* ---------- Imágenes: versión de 2048 px en pantallas grandes ---------- */
++var redT = navigator.connection || {}, IMG_HD = !redT.saveData && !/(^|-)2g$/.test(redT.effectiveType || '') && Math.max(screen.width, screen.height) * Math.min(window.devicePixelRatio || 1, 2) > 1400;
++function imagen(nombre){ return nombre + (IMG_HD ? '-hd' : '') + '.webp'; }
+ 
+ /* ---------- Zonas trazadas sobre las dos imágenes aéreas ---------- */
+ function banda(A,B,i,j){var p=[],k;for(k=i;k<=j;k++)p.push(A[k]);for(k=j;k>=i;k--)p.push(B[k]);return p}
+@@ -728,8 +802,8 @@ function formas(D,M,F,GI,GD){return {
+   li:[banda(D,M,0,2)], pi:[banda(D,M,2,4)], sc:[banda(D,M,4,8)], pd:[banda(D,M,8,10)], ld:[banda(D,M,10,12)],
+   ti:[banda(M,F,0,4)], cl:[banda(M,F,4,5),banda(M,F,7,8)], vip:[banda(M,F,5,7)], td:[banda(M,F,8,12)], gi:[GI], gd:[GD]}}
+ var AEREO = {
+-  ancho:{img:'aereo-w.webp', vb:[0,0,1024,576], ajuste:'xMidYMid slice', w:1024, h:576, f:formas([[322,262],[359,295],[379,330],[409,365],[449,394],[488,414],[512,421],[538,414],[576,394],[616,365],[646,330],[666,295],[702,262]],[[289,262],[291,298],[304,332],[332,366],[374,401],[426,433],[512,458],[599,433],[651,401],[692,366],[721,332],[734,298],[736,262]],[[250,250],[244,300],[256,341],[284,381],[329,421],[392,461],[512,492],[632,461],[696,421],[741,381],[769,341],[781,300],[775,250]],[[478,162],[440,165],[400,178],[365,191],[331,210],[289,235],[320,259],[345,232],[380,210],[415,195],[450,188],[479,185]],[[545,162],[585,165],[625,178],[660,191],[695,210],[735,235],[704,259],[679,232],[645,210],[610,195],[575,188],[546,185]])},
+-  alto: {img:'aereo.webp',   vb:[0,100,1024,880], ajuste:'xMidYMid meet', w:1024, h:1024, f:formas([[236,452],[262,520],[300,585],[350,655],[410,712],[468,742],[512,750],[558,742],[618,708],[678,650],[724,580],[756,512],[788,452]],[[172,452],[180,540],[214,622],[268,702],[338,772],[420,816],[512,830],[602,816],[686,772],[756,702],[810,622],[844,540],[852,452]],[[108,428],[112,560],[158,672],[232,772],[328,852],[428,897],[512,908],[598,897],[700,852],[792,772],[862,672],[906,560],[916,428]],[[465,263],[410,270],[350,290],[290,320],[235,355],[178,395],[215,425],[262,385],[322,345],[380,312],[468,305]],[[558,263],[610,270],[670,290],[730,320],[790,355],[848,398],[812,425],[765,388],[705,348],[645,315],[556,305]])}
++  ancho:{img:imagen('aereo-w'), vb:[0,0,1024,576], ajuste:'xMidYMid slice', w:1024, h:576, f:formas([[322,262],[359,295],[379,330],[409,365],[449,394],[488,414],[512,421],[538,414],[576,394],[616,365],[646,330],[666,295],[702,262]],[[289,262],[291,298],[304,332],[332,366],[374,401],[426,433],[512,458],[599,433],[651,401],[692,366],[721,332],[734,298],[736,262]],[[250,250],[244,300],[256,341],[284,381],[329,421],[392,461],[512,492],[632,461],[696,421],[741,381],[769,341],[781,300],[775,250]],[[478,162],[440,165],[400,178],[365,191],[331,210],[289,235],[320,259],[345,232],[380,210],[415,195],[450,188],[479,185]],[[545,162],[585,165],[625,178],[660,191],[695,210],[735,235],[704,259],[679,232],[645,210],[610,195],[575,188],[546,185]])},
++  alto: {img:imagen('aereo'), vb:[0,100,1024,880], ajuste:'xMidYMid meet', w:1024, h:1024, f:formas([[236,452],[262,520],[300,585],[350,655],[410,712],[468,742],[512,750],[558,742],[618,708],[678,650],[724,580],[756,512],[788,452]],[[172,452],[180,540],[214,622],[268,702],[338,772],[420,816],[512,830],[602,816],[686,772],[756,702],[810,622],[844,540],[852,452]],[[108,428],[112,560],[158,672],[232,772],[328,852],[428,897],[512,908],[598,897],[700,852],[792,772],[862,672],[906,560],[916,428]],[[465,263],[410,270],[350,290],[290,320],[235,355],[178,395],[215,425],[262,385],[322,345],[380,312],[468,305]],[[558,263],[610,270],[670,290],[730,320],[790,355],[848,398],[812,425],[765,388],[705,348],[645,315],[556,305]])}
+ };
+ /* ---------- Asientos trazados sobre las fotos (1024 x 576) ---------- */
+ var FILAS = [[392,512,[158,259,360,461,562,662,763,864],92],[272,384,[184,277,370,464,557,650,744,838],84],[166,268,[206,293,380,467,554,641,728,816],78],[70,164,[227,309,390,471,553,634,716,797],72]];
+@@ -771,7 +845,7 @@ function dibujarEstadio(){
+   lienzo.setAttribute('aria-label','Vista aérea del estadio. Elige una zona.');
+ }
+ function dibujarAsientos(){
+-  var z=E.zona, img=z.palco?'palco-w.webp':'asientos-w.webp', h='<image href="'+img+'" x="0" y="0" width="1024" height="576"/>';
++  var z=E.zona, img=z.palco?imagen('palco-w'):imagen('asientos-w'), h='<image href="'+img+'" x="0" y="0" width="1024" height="576"/>';
+   sillas(z).forEach(function(s){
+     var oc=ocupada(z,s), mia=E.sel.indexOf(s.id)>=0, w=f1(s.x1-s.x0), al=f1(s.y1-s.y0), r='x="'+f1(s.x0)+'" y="'+f1(s.y0)+'" width="'+w+'" height="'+al+'" rx="'+s.rx+'"';
+     h+='<g class="silla'+(oc?' ocupada':'')+(mia?' mia':'')+'" data-s="'+s.id+'" role="button" tabindex="'+(oc?-1:0)+'" aria-disabled="'+oc+'" aria-pressed="'+mia+'" aria-label="'+puesto(s)+(oc?', ocupado':mia?', elegido':', libre')+'"><rect class="tinte" '+r+'/><rect class="brillo" '+r+'/><rect class="borde" '+r+'/></g>';
+@@ -788,7 +862,7 @@ function cajaVista(z,s){
+ }
+ function dibujarVista(){
+   var z=E.zona, s=elegidas()[E.sel.length-1], v=z.v;
+-  lienzo.innerHTML='<image href="'+v.img+'.webp" x="0" y="0" width="1024" height="576"'+(v.flip?' transform="translate(1024 0) scale(-1 1)"':'')+'/>';
++  lienzo.innerHTML='<image href="'+imagen(v.img)+'" x="0" y="0" width="1024" height="576"'+(v.flip?' transform="translate(1024 0) scale(-1 1)"':'')+'/>';
+   fijarCaja(cajaVista(z,s),'xMidYMid slice');
+   lienzo.setAttribute('aria-label','Vista aproximada del terreno desde '+z.n);
+ }
+@@ -1000,7 +1074,33 @@ window.__tribuna={zonas:ZONAS,zona:zonaPorId,
+   ocupada:function(zid,sid){var z=zonaPorId(zid),s=z&&sillaPorId(z,sid);return !s||ocupada(z,s)},
+   libres:function(zid){return libres(zonaPorId(zid))},
+   reservar:function(zid,sid){var z=zonaPorId(zid);if(!z)return;E.zona=z;E.nivel=1;E.sel=[sid];pintar();abrirPago()}};
++// La taquilla se dibuja de una vez (el panel y la lista de zonas son texto), pero sus fotos grandes
++// esperan a que la taquilla esté cerca de la pantalla para no competir con el recorrido.
++var foto=AEREO.ancho.img, fotoA=AEREO.alto.img;
++AEREO.ancho.img=AEREO.alto.img='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+ pintar();
++function soltarFotos(){if(AEREO.ancho.img===foto)return;AEREO.ancho.img=foto;AEREO.alto.img=fotoA;if(E.nivel===0)dibujarEstadio()}
++if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){if(es.some(function(e){return e.isIntersecting})){soltarFotos();io.disconnect()}},{rootMargin:'120% 0px'});io.observe(escenario)}else soltarFotos();
++['pointerdown','keydown','focusin'].forEach(function(t){escenario.addEventListener(t,soltarFotos,{once:true})});
++})();
++</script>
++<script>
++/* Textos del estadio elegido, enlaces y caché sin conexión */
++(function(){
++  'use strict';
++  var est = window.TRIBUNA_ESTADIO;
++  if (est) {
++    document.title = 'Tribuna en el ' + est.corto + ': elige tu puesto viendo el estadio';
++    if (est.acento) document.documentElement.style.setProperty('--naranja', est.acento);
++    var q = function(s){ return document.querySelector(s); };
++    var p = q('.momento p'); if (p) p.textContent = 'Así se vería la boletería del ' + est.nombre + ', ' + est.ciudad + '. Desliza y recórrela.';
++    var t = q('#titular p'); if (t) t.textContent = est.nombre + ' (' + est.ciudad + ', ' + est.estado + '). Toca una zona, escoge tu asiento y mira el terreno desde ahí.';
++    var av = q('#aviso'); if (av) av.innerHTML = '<strong>Demo para el ' + est.corto.replace(/[<>&]/g, '') + '.</strong> Equipos y precios de ejemplo. Aquí no se venden boletos ni se procesan pagos.';
++    var nota = q('[data-nota-estadio]'); if (nota) nota.textContent = 'Las imágenes del recorrido son una recreación genérica generada con inteligencia artificial; la versión final para el ' + est.nombre + ' se hace con la recreación de ese estadio, zona por zona. Los nombres de zona y los precios son de ejemplo.';
++  }
++  // Los enlaces internos conservan el estadio elegido
++  if (est) Array.prototype.forEach.call(document.querySelectorAll('a[data-con-estadio]'), function(a){ a.href = a.getAttribute('href') + (a.getAttribute('href').indexOf('?') < 0 ? '?' : '&') + 'estadio=' + encodeURIComponent(est.clave); });
++  if ('serviceWorker' in navigator && location.protocol === 'https:') window.addEventListener('load', function(){ navigator.serviceWorker.register('/sw.js').catch(function(){}); });
+ })();
+ </script>
+ </body>
+diff --git a/portal/index.html b/portal/index.html
+new file mode 100644
+index 0000000..04ffd42
+--- /dev/null
++++ b/portal/index.html
+@@ -0,0 +1,485 @@
++<!doctype html>
++<html lang="es-VE">
++<head>
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1">
++<title>Portal del estadio | Tribuna</title>
++<meta name="description" content="Demo del portal de Tribuna para estadios: ventas, cobros por Pago Móvil, Zelle y USDT, conciliación y cortes en un solo lugar.">
++<meta name="robots" content="noindex">
++<meta name="theme-color" content="#070D1A">
++<meta name="color-scheme" content="dark">
++<link rel="icon" href="/favicon.ico" sizes="48x48">
++<link rel="icon" href="/icono.svg" type="image/svg+xml">
++<link rel="apple-touch-icon" href="/apple-touch-icon.png">
++<link rel="preload" as="font" type="font/woff2" href="/fuentes/titulo-800.woff2" crossorigin>
++<link rel="preload" as="font" type="font/woff2" href="/fuentes/texto-400.woff2" crossorigin>
++<style>
++@font-face{font-family:"Big Shoulders Display";font-weight:800;font-display:swap;src:url(/fuentes/titulo-800.woff2) format("woff2")}
++@font-face{font-family:"Hanken Grotesk";font-weight:400;font-display:swap;src:url(/fuentes/texto-400.woff2) format("woff2")}
++@font-face{font-family:"Hanken Grotesk";font-weight:500;font-display:swap;src:url(/fuentes/texto-500.woff2) format("woff2")}
++@font-face{font-family:"Hanken Grotesk";font-weight:700;font-display:swap;src:url(/fuentes/texto-700.woff2) format("woff2")}
++:root{
++  --noche:#070D1A; --superficie:#0A1222; --tarjeta:#0E1729; --borde:rgba(255,255,255,.12); --linea:rgba(255,255,255,.08);
++  --tinta:#F3F5F1; --suave:#B9C5DA; --tenue:#8492AC; --naranja:#FF8A1F;
++  --pm:#3987e5; --ze:#d95926; --us:#199e70;
++  --bien:#0ca30c; --aviso:#fab219; --mal:#d03b3b;
++  --titulo:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
++  --texto:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
++}
++*{box-sizing:border-box}
++html{scrollbar-color:#33415E #070D1A}
++body{margin:0;background:var(--noche);color:var(--tinta);font-family:var(--texto);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
++button,select,input{font:inherit;color:inherit}
++button{cursor:pointer}
++a{color:inherit;text-underline-offset:3px}
++:focus-visible{outline:3px solid var(--naranja);outline-offset:2px}
++[hidden]{display:none!important}
++.num{font-variant-numeric:tabular-nums}
++.marca{display:inline-flex;align-items:center;gap:9px;font-family:var(--titulo);font-weight:800;font-size:24px;line-height:1;text-decoration:none}
++.marca svg{width:34px;height:22px}
++.boton{border:0;border-radius:12px;padding:11px 16px;font-weight:700;background:var(--naranja);color:#0E1F3D;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;transition:background-color .15s ease,transform .15s cubic-bezier(.23,1,.32,1)}
++.boton:active{transform:scale(.97)}
++.boton.claro{background:rgba(255,255,255,.1);color:#fff}
++@media (hover:hover){.boton:hover{background:#FFA24D}.boton.claro:hover{background:rgba(255,255,255,.18)}}
++.boton.chico{min-height:34px;padding:6px 12px;font-size:14px;border-radius:9px}
++
++/* Acceso */
++.acceso{min-height:100svh;display:grid;place-items:center;padding:24px;background:radial-gradient(120% 80% at 50% 0,#13244A 0,var(--noche) 60%)}
++.caja{width:min(440px,100%);background:var(--superficie);border:1px solid var(--borde);border-radius:22px;padding:28px}
++.caja h1{font-family:var(--titulo);font-weight:800;font-size:44px;line-height:.95;margin:22px 0 8px}
++.caja p{color:var(--suave);margin:0 0 18px}
++.campo{display:grid;gap:6px;margin-bottom:16px}
++.campo label{font-weight:700;font-size:14px}
++select{background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
++.letra-chica{font-size:13px;color:var(--tenue);margin:16px 0 0!important}
++.caja .boton{width:100%}
++
++/* Panel */
++.barra{position:sticky;top:0;z-index:20;background:rgba(7,13,26,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--borde)}
++.barra .dentro{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 24px;max-width:1320px;margin:0 auto}
++.barra .estadio{font-weight:700}
++.barra .estadio small{display:block;font-weight:400;color:var(--suave);font-size:13px}
++.barra .der{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
++.aviso-demo{background:#04070F;color:#C9D4E8;font-size:13px;text-align:center;padding:7px 16px}
++.aviso-demo strong{color:var(--naranja)}
++main{max-width:1320px;margin:0 auto;padding:22px 24px 60px}
++.filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
++.filtros select{width:auto;min-width:220px}
++.rango{display:inline-flex;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:3px}
++.rango button{background:none;border:0;border-radius:8px;padding:7px 12px;color:var(--suave);font-weight:500}
++.rango button[aria-pressed="true"]{background:rgba(255,255,255,.12);color:#fff;font-weight:700}
++.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px}
++.tile{background:var(--superficie);border:1px solid var(--borde);border-radius:16px;padding:16px}
++.tile .et{color:var(--suave);font-size:13px}
++.tile .val{font-family:var(--titulo);font-weight:800;font-size:38px;line-height:1;margin:8px 0 4px}
++.tile .det{color:var(--tenue);font-size:13px}
++.rejilla{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-bottom:12px}
++.tarjeta{background:var(--superficie);border:1px solid var(--borde);border-radius:16px;padding:18px;min-width:0}
++.tarjeta h2{font-size:17px;margin:0 0 2px}
++.tarjeta .sub{color:var(--suave);font-size:13px;margin:0 0 14px}
++.cab{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
++.leyenda{display:flex;gap:14px;flex-wrap:wrap;list-style:none;margin:0 0 10px;padding:0;font-size:13px;color:var(--suave)}
++.leyenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
++.grafico{position:relative}
++.grafico svg{display:block;width:100%;height:auto;overflow:visible}
++.eje text{fill:var(--tenue);font-size:11px;font-family:var(--texto)}
++.eje line{stroke:var(--linea)}
++.punta{position:absolute;pointer-events:none;background:#fff;color:#0E1F3D;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.35;box-shadow:0 10px 30px rgba(0,0,0,.5);white-space:nowrap;transform:translate(-50%,calc(-100% - 10px));z-index:5}
++.punta b{display:block}
++.punta .f{display:flex;justify-content:space-between;gap:14px}
++.punta .f i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
++.enlace{background:none;border:0;padding:0;color:var(--suave);text-decoration:underline;text-underline-offset:3px;font-size:13px}
++.tabla-graf{margin-top:10px}
++table{width:100%;border-collapse:collapse;font-size:14px}
++th{text-align:left;font-weight:500;color:var(--suave);font-size:13px;padding:8px 10px;border-bottom:1px solid var(--borde);white-space:nowrap}
++td{padding:9px 10px;border-bottom:1px solid var(--linea);vertical-align:middle}
++td.d,th.d{text-align:right;font-variant-numeric:tabular-nums}
++.desliza-x{overflow-x:auto}
++.zonas{display:grid;gap:9px}
++.zona{display:grid;grid-template-columns:minmax(120px,170px) 1fr 44px;gap:10px;align-items:center;font-size:13px}
++.zona .n{color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
++.zona .pista{height:12px;background:rgba(255,255,255,.06);border-radius:0 4px 4px 0;overflow:hidden}
++.zona .pista i{display:block;height:100%;background:var(--pm);border-radius:0 4px 4px 0}
++.zona .v{text-align:right;font-variant-numeric:tabular-nums}
++.metodos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
++.metodo .fila{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:1px solid var(--linea)}
++.metodo .fila:last-child{border:0}
++.metodo h2{display:flex;align-items:center;gap:8px}
++.metodo h2 i{width:12px;height:12px;border-radius:3px;display:inline-block}
++.proporcion{display:flex;gap:2px;height:8px;margin:12px 0 10px}
++.proporcion span{display:block;height:100%}
++.proporcion span:first-child{border-radius:4px 0 0 4px}
++.proporcion span:last-child{border-radius:0 4px 4px 0}
++.estado{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;white-space:nowrap}
++.estado svg{width:14px;height:14px;flex:none}
++.herramientas{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
++.herramientas select,.herramientas input{width:auto;min-height:38px;background:var(--tarjeta);border:1px solid var(--borde);border-radius:9px;padding:6px 10px}
++.herramientas input{min-width:200px}
++.vacio{color:var(--suave);padding:18px 10px}
++.plan dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0}
++.plan dt{color:var(--suave)}
++.plan dd{margin:0;font-weight:700;text-align:right}
++.nota{color:var(--tenue);font-size:12.5px;margin:10px 0 0}
++.pie{color:var(--tenue);font-size:13px;max-width:1320px;margin:0 auto;padding:0 24px 40px}
++@media (max-width:1100px){.tiles{grid-template-columns:repeat(2,1fr)}.tiles .tile:first-child{grid-column:span 2}.rejilla{grid-template-columns:1fr}.metodos{grid-template-columns:1fr}}
++@media (max-width:600px){main{padding:16px 12px 48px}.barra .dentro{padding:10px 12px}.tile .val{font-size:32px}.filtros select{min-width:0;width:100%}.herramientas input{min-width:0;flex:1}}
++@media (prefers-reduced-motion:reduce){*{transition:none!important}}
++</style>
++</head>
++<body>
++<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="simbolo" viewBox="0 0 709 447"><path fill="#FF8A1F" fill-rule="evenodd" d="M1.2 447.2C0.2 446.5 0.0 431.7 0.2 376.5L0.5 306.6L9.5 305.3C24.4 303.2 33.8 300.0 44.1 293.4C68.9 277.5 84.6 247.5 82.6 219.5C80.6 190.0 63.3 163.7 37.5 150.8C28.2 146.1 13.5 142.0 6.0 142.0C-0.5 142.0 -0.0 147.7 0.0 71.6C0.0 33.6 0.4 1.9 0.8 1.2C1.5 0.2 73.1 0.0 355.6 0.2L709.5 0.5L709.8 69.9C709.9 120.3 709.7 139.7 708.9 140.6C708.3 141.4 705.9 142.0 703.6 142.0C694.1 142.0 679.2 146.4 668.9 152.3C650.1 163.0 637.3 179.2 630.3 201.0C627.8 208.6 627.5 210.9 627.6 223.5C627.6 238.7 628.5 243.2 633.8 255.7C645.2 282.4 668.7 300.5 698.0 305.0C702.1 305.6 706.5 306.4 707.8 306.6L710.0 307.0L710.0 376.3C710.0 428.9 709.7 445.9 708.8 446.8C707.9 447.7 627.9 448.0 355.1 448.0C161.1 448.0 1.9 447.6 1.2 447.2ZM281.8 334.9C282.0 318.2 282.3 313.0 283.4 312.1C284.3 311.3 304.7 311.1 355.6 311.2L426.5 311.5L427.0 334.0L427.5 356.5L436.0 356.8C449.8 357.3 449.0 358.1 449.0 343.5L449.0 331.0L451.8 329.9C464.7 324.9 473.2 317.4 476.8 307.8C478.9 302.3 479.0 300.2 479.2 257.6L479.5 213.1L476.8 210.3C474.4 207.9 473.3 207.6 467.5 207.6C462.5 207.6 460.3 208.1 458.2 209.7L455.5 211.7L455.2 235.1C455.1 248.0 454.8 259.1 454.5 259.9C454.1 261.0 453.5 260.9 451.7 259.3C448.4 256.3 443.5 254.0 440.2 254.0C438.6 254.0 432.4 255.1 426.4 256.4C402.3 261.6 379.8 264.0 355.3 264.0C336.9 264.0 314.0 262.3 301.5 260.0C298.8 259.5 290.1 257.9 282.3 256.4C268.3 253.8 267.9 253.7 263.5 255.5C260.9 256.4 258.4 258.1 257.7 259.1C257.1 260.1 256.2 261.0 255.8 261.0C255.3 261.0 255.0 250.0 255.0 236.6L255.0 212.1L252.4 210.1C249.1 207.5 242.1 206.5 237.5 208.0C230.7 210.2 230.9 208.7 231.2 259.1L231.5 304.5L234.3 310.2C238.6 318.6 250.7 329.0 256.4 329.0C259.5 329.0 260.7 333.2 260.9 344.5C261.1 350.5 261.4 355.8 261.7 356.3C261.9 356.7 266.5 356.9 271.8 356.8L281.5 356.5L281.8 334.9ZM397.0 242.5C402.8 241.7 409.5 240.6 412.0 240.1C414.5 239.5 421.5 238.1 427.7 236.9C433.8 235.7 439.4 234.4 440.1 233.9C441.1 233.3 441.1 227.7 440.1 204.8C437.4 145.2 436.2 123.4 435.5 121.0C433.0 112.0 425.9 102.2 418.7 97.6C408.0 90.9 407.9 90.9 352.4 91.2L302.5 91.5L296.5 94.4C289.5 97.8 280.5 106.6 277.3 113.0C273.9 120.0 273.1 125.8 272.0 150.0C269.8 195.8 269.0 211.8 268.4 222.2L267.7 232.9L270.6 234.1C278.5 237.1 309.7 242.6 327.0 244.0C341.7 245.2 384.9 244.3 397.0 242.5Z"/></symbol></svg>
++
++<!-- Acceso -->
++<section class="acceso" id="acceso" aria-labelledby="acceso-titulo">
++  <form class="caja" id="formAcceso">
++    <a class="marca" href="/" aria-label="Tribuna, inicio"><svg viewBox="0 0 709 447" aria-hidden="true"><use href="#simbolo"/></svg>Tribuna</a>
++    <h1 id="acceso-titulo">Portal del estadio</h1>
++    <p>Ventas, cobros y cortes de tu boletería en un solo lugar. Esta es la cuenta de demostración: los datos son inventados.</p>
++    <div class="campo">
++      <label for="elegirEstadio">Estadio</label>
++      <select id="elegirEstadio"></select>
++    </div>
++    <button class="boton" type="submit">Entrar con la cuenta de demostración</button>
++    <p class="letra-chica">En el portal real cada estadio entra con su correo y un código de un solo uso, y solo ve sus propios datos. Aquí no se pide ninguna clave.</p>
++  </form>
++</section>
++
++<!-- Panel -->
++<div id="panel" hidden>
++  <div class="aviso-demo"><strong>Cuenta de demostración.</strong> Ventas, cobros, referencias y montos son inventados. Nada de esto es dinero real.</div>
++  <header class="barra">
++    <div class="dentro">
++      <a class="marca" href="/" aria-label="Tribuna, inicio"><svg viewBox="0 0 709 447" aria-hidden="true"><use href="#simbolo"/></svg>Tribuna</a>
++      <div class="estadio" id="nombreEstadio"></div>
++      <div class="der">
++        <a class="boton claro chico" id="verDemo" href="/">Ver la taquilla</a>
++        <button class="boton claro chico" type="button" id="salir">Salir</button>
++      </div>
++    </div>
++  </header>
++  <main>
++    <div class="filtros">
++      <select id="filtroJuego" aria-label="Juego"></select>
++      <div class="rango" role="group" aria-label="Período">
++        <button type="button" data-dias="7" aria-pressed="false">7 días</button>
++        <button type="button" data-dias="30" aria-pressed="true">30 días</button>
++        <button type="button" data-dias="0" aria-pressed="false">Temporada</button>
++      </div>
++    </div>
++
++    <section class="tiles" id="tiles" aria-label="Resumen"></section>
++
++    <div class="rejilla">
++      <section class="tarjeta" aria-labelledby="t-ventas">
++        <div class="cab">
++          <div><h2 id="t-ventas">Cobrado por día</h2><p class="sub">En dólares, por método de pago</p></div>
++          <button class="enlace" type="button" data-tabla="ventas" aria-expanded="false">Ver como tabla</button>
++        </div>
++        <ul class="leyenda"><li><i style="background:var(--pm)"></i>Pago Móvil</li><li><i style="background:var(--ze)"></i>Zelle</li><li><i style="background:var(--us)"></i>USDT</li></ul>
++        <div class="grafico" id="grafVentas"></div>
++        <div class="tabla-graf desliza-x" id="tablaVentas" hidden></div>
++      </section>
++      <section class="tarjeta" aria-labelledby="t-zonas">
++        <h2 id="t-zonas">Ocupación por zona</h2>
++        <p class="sub" id="subZonas">Boletos vendidos sobre los disponibles</p>
++        <div class="zonas" id="zonas"></div>
++      </section>
++    </div>
++
++    <section class="metodos" id="metodos" aria-label="Conciliación por método"></section>
++
++    <section class="tarjeta" aria-labelledby="t-cobros" style="margin-bottom:12px">
++      <div class="cab">
++        <div><h2 id="t-cobros">Cobros</h2><p class="sub">Cada pago con su referencia. Los que están por verificar esperan que aparezcan en tu banco o billetera.</p></div>
++        <button class="boton claro chico" type="button" id="exportar">Descargar CSV</button>
++      </div>
++      <div class="herramientas">
++        <select id="fEstado" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option value="pendiente">Por verificar</option><option value="confirmado">Confirmados</option><option value="rechazado">Rechazados</option></select>
++        <select id="fMetodo" aria-label="Filtrar por método"><option value="">Todos los métodos</option><option value="pm">Pago Móvil</option><option value="ze">Zelle</option><option value="us">USDT</option></select>
++        <input id="fBuscar" type="search" placeholder="Buscar referencia o boleto" aria-label="Buscar referencia o boleto">
++      </div>
++      <div class="desliza-x"><table id="tablaCobros"></table></div>
++      <p class="nota" id="notaCobros"></p>
++    </section>
++
++    <div class="rejilla">
++      <section class="tarjeta" aria-labelledby="t-cortes">
++        <h2 id="t-cortes">Cortes semanales</h2>
++        <p class="sub">El dinero llega directo a las cuentas del estadio. Tribuna factura cada semana el cargo por servicio que pagaron los compradores.</p>
++        <div class="desliza-x"><table id="tablaCortes"></table></div>
++      </section>
++      <section class="tarjeta plan" aria-labelledby="t-plan">
++        <h2 id="t-plan">Tu plan</h2>
++        <p class="sub">Así se cobra Tribuna en esta demo</p>
++        <dl id="plan"></dl>
++        <p class="nota">Tasa de cambio de ejemplo. En producción se toma la tasa oficial del BCV de cada día. El IGTF del 3 % sobre pagos en divisas se muestra solo como referencia: confirma su tratamiento con tu contador.</p>
++      </section>
++    </div>
++  </main>
++  <p class="pie">Portal de demostración desarrollado por Qiu Agency, de Qiu Capital Group C.A. RIF: J508801920. No está afiliado a ningún equipo, liga ni estadio real.</p>
++</div>
++
++<script src="/estadios.js"></script>
++<script>
++(function(){
++'use strict';
++var EST = window.TRIBUNA_ESTADIOS, $ = function(id){ return document.getElementById(id); };
++var METODOS = {pm:{n:'Pago Móvil', c:'var(--pm)', divisa:false, costo:.015}, ze:{n:'Zelle', c:'var(--ze)', divisa:true, costo:0}, us:{n:'USDT', c:'var(--us)', divisa:true, costo:.01}};
++var CARGO = .06, LICENCIA = 250, TASA = 420; // tasa de ejemplo, Bs por dólar
++var ESTADOS = {
++  confirmado:{n:'Confirmado', c:'var(--bien)', i:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M4.8 8.2l2.1 2.1 4.3-4.5" stroke="#0A1222" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
++  pendiente:{n:'Por verificar', c:'var(--aviso)', i:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M8 4.5V8l2.3 1.5" stroke="#0A1222" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>'},
++  rechazado:{n:'Rechazado', c:'var(--mal)', i:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M5.5 5.5l5 5m0-5l-5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>'}
++};
++var IDS = ['sc','vip','cl','pd','pi','ld','li','td','ti','gd','gi'];
++var CUPO = {sc:.10, vip:.03, cl:.06, pd:.09, pi:.09, ld:.11, li:.11, td:.13, ti:.13, gd:.075, gi:.075};
++var RIVALES = ['Corsarios','Halcones','Toros','Marinos','Truenos','Gigantes','Piratas'];
++
++function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
++function usd(n, dec){ return '$' + n.toLocaleString('es-VE', {minimumFractionDigits: dec || 0, maximumFractionDigits: dec || 0}); }
++function ent(n){ return Math.round(n).toLocaleString('es-VE'); }
++function pct(n){ return (n * 100).toLocaleString('es-VE', {maximumFractionDigits: 0}) + ' %'; }
++function semilla(s){ var h = 2166136261; for (var k = 0; k < s.length; k++) { h ^= s.charCodeAt(k); h = Math.imul(h, 16777619); } return function(){ h = Math.imul(h ^ h >>> 15, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; }; }
++var DIA = 864e5;
++function hoy(){ var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
++function fecha(d){ return d.toLocaleDateString('es-VE', {day:'numeric', month:'short'}); }
++function fechaLarga(d){ return d.toLocaleDateString('es-VE', {weekday:'short', day:'numeric', month:'short'}); }
++
++/* ---------- Datos inventados, siempre los mismos para cada estadio ---------- */
++function generar(clave){
++  var e = EST[clave], r = semilla(clave), H = hoy(), inicio = new Date(2026, 9, 12);
++  if (H - inicio < 20 * DIA) inicio = new Date(H - 45 * DIA);
++  var juegos = [], d = new Date(inicio.getTime() + Math.floor(r() * 3) * DIA), k = 0;
++  while (d <= new Date(H.getTime() + 7 * DIA)) {
++    var fin = d.getDay() === 0 || d.getDay() === 6, clasico = r() < .18;
++    juegos.push({id:'J' + (++k), fecha:new Date(d), rival:RIVALES[Math.floor(r() * RIVALES.length)], demanda:(fin ? .72 : .5) * (clasico ? 1.3 : 1) * (.8 + r() * .35), clasico:clasico});
++    d = new Date(d.getTime() + (r() < .5 ? 2 : 3) * DIA);
++  }
++  var zonas = IDS.map(function(id){ var z = e.zonas[id]; return {id:id, n:z[0], precio:z[1], cupo:Math.round(e.capacidad * CUPO[id]), gusto:.6 + r() * .8}; });
++  var cobros = [], n = 0;
++  juegos.forEach(function(j){
++    var vendidos = {};
++    zonas.forEach(function(z){
++      var ocup = Math.min(.97, j.demanda * z.gusto * (.8 + r() * .3));
++      var onlinePct = .42;
++      var cant = Math.round(z.cupo * ocup * onlinePct);
++      vendidos[z.id] = cant;
++      // Se agrupa en compras de 1 a 6 boletos
++      while (cant > 0) {
++        var b = Math.min(cant, 1 + Math.floor(Math.pow(r(), 1.6) * 6)); cant -= b;
++        var antes = Math.floor(Math.pow(r(), 2.2) * 10), cuando = new Date(j.fecha.getTime() - antes * DIA + Math.floor(r() * 14 + 8) * 36e5 + Math.floor(r() * 3600) * 1000);
++        if (cuando > new Date()) continue;
++        var m = r(), met = m < .55 ? 'pm' : m < .8 ? 'ze' : 'us';
++        var edad = (Date.now() - cuando) / DIA, est = edad < 1.2 && r() < .14 ? 'pendiente' : r() < .018 ? 'rechazado' : 'confirmado';
++        var monto = b * z.precio;
++        cobros.push({id:'TB-' + String(100000 + (++n)).slice(1) + clave.slice(0, 2).toUpperCase(), cuando:cuando, juego:j.id, zona:z.id, boletos:b, metodo:met, monto:monto, cargo:Math.round(monto * CARGO * 100) / 100, estado:est,
++          ref: met === 'pm' ? String(Math.floor(r() * 9e11 + 1e11)).slice(0, 12) : met === 'ze' ? 'ZL' + Math.floor(r() * 9e7 + 1e7) : '0x' + Math.floor(r() * 0xfffffff).toString(16) + '…' + Math.floor(r() * 0xffff).toString(16)});
++      }
++    });
++    j.vendidos = vendidos;
++  });
++  cobros.sort(function(a, b){ return b.cuando - a.cuando; });
++  return {e:e, clave:clave, juegos:juegos, zonas:zonas, cobros:cobros};
++}
++
++/* ---------- Estado ---------- */
++var S = {datos:null, dias:30, juego:'', fEstado:'', fMetodo:'', buscar:'', max:25};
++
++function enRango(c){
++  if (S.juego) return c.juego === S.juego;
++  if (!S.dias) return true;
++  return c.cuando >= new Date(hoy().getTime() - (S.dias - 1) * DIA);
++}
++function cobrosActivos(){ return S.datos.cobros.filter(enRango); }
++
++/* ---------- Resumen ---------- */
++function pintarTiles(lista){
++  var ok = lista.filter(function(c){ return c.estado === 'confirmado'; }), pend = lista.filter(function(c){ return c.estado === 'pendiente'; });
++  var bruto = ok.reduce(function(s, c){ return s + c.monto; }, 0), boletos = ok.reduce(function(s, c){ return s + c.boletos; }, 0);
++  var montoPend = pend.reduce(function(s, c){ return s + c.monto; }, 0);
++  var cargo = ok.reduce(function(s, c){ return s + c.cargo; }, 0);
++  var costo = ok.reduce(function(s, c){ return s + c.monto * METODOS[c.metodo].costo; }, 0);
++  var jugados = S.datos.juegos.filter(function(j){ return j.fecha <= hoy() && (S.juego ? j.id === S.juego : true); });
++  var cap = 0, vend = 0;
++  jugados.forEach(function(j){ S.datos.zonas.forEach(function(z){ cap += z.cupo; vend += j.vendidos[z.id] || 0; }); });
++  var periodo = S.juego ? 'este juego' : S.dias ? 'últimos ' + S.dias + ' días' : 'la temporada';
++  var t = [
++    ['Cobrado y verificado', usd(bruto), ent(boletos) + ' boletos, ' + periodo],
++    ['Ticket promedio', usd(boletos ? bruto / boletos : 0, 2), 'Por boleto vendido en línea'],
++    ['Ocupación en línea', pct(cap ? vend / cap : 0), ent(vend) + ' de ' + ent(cap) + ' puestos en juegos jugados'],
++    ['Por verificar', usd(montoPend), pend.length + (pend.length === 1 ? ' pago espera' : ' pagos esperan') + ' confirmación'],
++    ['Neto para el estadio', usd(bruto - costo), 'Después de ' + usd(costo) + ' en costos de cobro']
++  ];
++  $('tiles').innerHTML = t.map(function(x){ return '<div class="tile"><div class="et">' + x[0] + '</div><div class="val num">' + x[1] + '</div><div class="det">' + x[2] + '</div></div>'; }).join('');
++  return {bruto:bruto, cargo:cargo};
++}
++
++/* ---------- Gráfico de barras apiladas por día ---------- */
++function porDia(lista){
++  var H = hoy(), dias = S.juego ? 10 : S.dias || Math.max(7, Math.ceil((H - S.datos.juegos[0].fecha) / DIA) + 10), filas = [];
++  var desde = S.juego ? new Date(S.datos.juegos.filter(function(j){ return j.id === S.juego; })[0].fecha.getTime() - 9 * DIA) : new Date(H.getTime() - (dias - 1) * DIA);
++  for (var i = 0; i < dias; i++) filas.push({d:new Date(desde.getTime() + i * DIA), pm:0, ze:0, us:0});
++  lista.forEach(function(c){ if (c.estado === 'rechazado') return; var k = Math.floor((new Date(c.cuando).setHours(0,0,0,0) - desde) / DIA); if (filas[k]) filas[k][c.metodo] += c.monto; });
++  return filas;
++}
++function escalaBonita(max){ if (max <= 0) return [1, [0, 1]]; var p = Math.pow(10, Math.floor(Math.log10(max))), paso = [1, 2, 2.5, 5, 10].map(function(m){ return m * p; }).filter(function(s){ return max / s <= 5; })[0]; var top = Math.ceil(max / paso) * paso, t = []; for (var v = 0; v <= top + 1e-9; v += paso) t.push(v); return [top, t]; }
++function pintarVentas(lista){
++  var filas = porDia(lista), W = Math.max(320, Math.round($('grafVentas').clientWidth || 760)), Hh = W < 520 ? 240 : 260, ml = 46, mr = 8, mt = 10, mb = 26, iw = W - ml - mr, ih = Hh - mt - mb;
++  var max = Math.max.apply(null, filas.map(function(f){ return f.pm + f.ze + f.us; })), esc2 = escalaBonita(max), top = esc2[0];
++  var bw = iw / filas.length, ancho = Math.max(2, Math.min(22, bw - 2)), y = function(v){ return mt + ih - v / top * ih; };
++  var h = '<svg viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Cobrado por día y método de pago"><g class="eje">';
++  esc2[1].forEach(function(v){ h += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (ml - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + (v >= 1000 ? '$' + (v / 1000).toLocaleString('es-VE') + ' mil' : '$' + v) + '</text>'; });
++  var cada = Math.ceil(filas.length / (W < 520 ? 4 : 8));
++  filas.forEach(function(f, i){ if (i % cada === 0) h += '<text x="' + (ml + bw * i + bw / 2) + '" y="' + (Hh - 6) + '" text-anchor="middle">' + fecha(f.d) + '</text>'; });
++  h += '</g>';
++  filas.forEach(function(f, i){
++    var x = ml + bw * i + (bw - ancho) / 2, acum = 0, segs = ['pm', 'ze', 'us'].filter(function(m){ return f[m] > 0; });
++    segs.forEach(function(m, k){
++      var y0 = y(acum), y1 = y(acum + f[m]), alto = Math.max(0, y0 - y1 - (k < segs.length - 1 ? 2 : 0)), r = k === segs.length - 1 ? Math.min(4, ancho / 2, alto) : 0;
++      if (alto > 0) h += r ? '<path fill="' + METODOS[m].c + '" d="M' + x + ' ' + y0 + 'V' + (y0 - alto + r) + 'Q' + x + ' ' + (y0 - alto) + ' ' + (x + r) + ' ' + (y0 - alto) + 'H' + (x + ancho - r) + 'Q' + (x + ancho) + ' ' + (y0 - alto) + ' ' + (x + ancho) + ' ' + (y0 - alto + r) + 'V' + y0 + 'Z"/>' : '<rect fill="' + METODOS[m].c + '" x="' + x + '" y="' + (y0 - alto) + '" width="' + ancho + '" height="' + alto + '"/>';
++      acum += f[m];
++    });
++    h += '<rect class="golpe" data-i="' + i + '" x="' + (ml + bw * i) + '" y="' + mt + '" width="' + bw + '" height="' + ih + '" fill="transparent"/>';
++  });
++  h += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="rgba(255,255,255,.3)"/></svg><div class="punta" id="punta" hidden></div>';
++  var g = $('grafVentas'); g.innerHTML = h;
++  var punta = $('punta');
++  function ver(ev){
++    var t = ev.target.closest && ev.target.closest('.golpe'); if (!t) { punta.hidden = true; return; }
++    var f = filas[+t.getAttribute('data-i')], tot = f.pm + f.ze + f.us, caja = g.getBoundingClientRect(), rr = t.getBoundingClientRect();
++    punta.innerHTML = '<b>' + fechaLarga(f.d) + ': ' + usd(tot) + '</b>' + ['pm', 'ze', 'us'].map(function(m){ return '<span class="f"><span><i style="background:' + METODOS[m].c + '"></i>' + METODOS[m].n + '</span><span class="num">' + usd(f[m]) + '</span></span>'; }).join('');
++    punta.style.left = Math.max(90, Math.min(caja.width - 90, rr.left - caja.left + rr.width / 2)) + 'px'; punta.style.top = (rr.top - caja.top + 30) + 'px'; punta.hidden = false;
++  }
++  g.onpointermove = ver; g.onpointerleave = function(){ punta.hidden = true; };
++  $('tablaVentas').innerHTML = '<table><thead><tr><th>Día</th><th class="d">Pago Móvil</th><th class="d">Zelle</th><th class="d">USDT</th><th class="d">Total</th></tr></thead><tbody>' + filas.map(function(f){ return '<tr><td>' + fechaLarga(f.d) + '</td><td class="d">' + usd(f.pm) + '</td><td class="d">' + usd(f.ze) + '</td><td class="d">' + usd(f.us) + '</td><td class="d">' + usd(f.pm + f.ze + f.us) + '</td></tr>'; }).join('') + '</tbody></table>';
++}
++
++/* ---------- Ocupación por zona ---------- */
++function pintarZonas(){
++  var jugados = S.datos.juegos.filter(function(j){ return j.fecha <= hoy() && (S.juego ? j.id === S.juego : true); });
++  if (!S.juego && S.dias) jugados = jugados.filter(function(j){ return j.fecha >= new Date(hoy().getTime() - (S.dias - 1) * DIA); });
++  $('subZonas').textContent = jugados.length ? 'Boletos vendidos en línea sobre el cupo de cada zona, ' + jugados.length + (jugados.length === 1 ? ' juego' : ' juegos') : 'Todavía no hay juegos jugados en este período';
++  $('zonas').innerHTML = S.datos.zonas.slice().sort(function(a, b){ return b.precio - a.precio; }).map(function(z){
++    var cap = z.cupo * jugados.length, v = jugados.reduce(function(s, j){ return s + (j.vendidos[z.id] || 0); }, 0), p = cap ? v / cap : 0;
++    return '<div class="zona" title="' + esc(z.n) + ': ' + ent(v) + ' de ' + ent(cap) + '"><span class="n">' + esc(z.n) + ' · $' + z.precio + '</span><span class="pista"><i style="width:' + (p * 100).toFixed(1) + '%"></i></span><span class="v">' + pct(p) + '</span></div>';
++  }).join('');
++}
++
++/* ---------- Conciliación por método ---------- */
++function pintarMetodos(lista){
++  $('metodos').innerHTML = ['pm', 'ze', 'us'].map(function(m){
++    var l = lista.filter(function(c){ return c.metodo === m; }), sum = function(est){ return l.filter(function(c){ return c.estado === est; }).reduce(function(s, c){ return s + c.monto; }, 0); };
++    var ok = sum('confirmado'), pe = sum('pendiente'), re = sum('rechazado'), tot = ok + pe + re || 1, M = METODOS[m];
++    var extra = M.divisa ? '<div class="fila"><span>IGTF referencial (3 %)</span><span class="num">' + usd(ok * .03, 2) + '</span></div>' : '<div class="fila"><span>En bolívares (tasa de ejemplo)</span><span class="num">Bs ' + ent(ok * TASA) + '</span></div>';
++    return '<section class="tarjeta metodo"><h2><i style="background:' + M.c + '"></i>' + M.n + '</h2><p class="sub">' + l.length + ' pagos en el período</p>' +
++      '<div class="proporcion" aria-hidden="true"><span style="flex:' + ok / tot + ';background:var(--bien)"></span><span style="flex:' + pe / tot + ';background:var(--aviso)"></span><span style="flex:' + re / tot + ';background:var(--mal)"></span></div>' +
++      '<div class="fila"><span class="estado" style="color:var(--bien)">' + ESTADOS.confirmado.i + '<span style="color:var(--tinta)">Confirmado</span></span><span class="num">' + usd(ok) + '</span></div>' +
++      '<div class="fila"><span class="estado" style="color:var(--aviso)">' + ESTADOS.pendiente.i + '<span style="color:var(--tinta)">Por verificar</span></span><span class="num">' + usd(pe) + '</span></div>' +
++      '<div class="fila"><span class="estado" style="color:var(--mal)">' + ESTADOS.rechazado.i + '<span style="color:var(--tinta)">Rechazado</span></span><span class="num">' + usd(re) + '</span></div>' + extra + '</section>';
++  }).join('');
++}
++
++/* ---------- Tabla de cobros ---------- */
++function zonaN(id){ for (var k = 0; k < S.datos.zonas.length; k++) if (S.datos.zonas[k].id === id) return S.datos.zonas[k].n; return id; }
++function juegoN(id){ var j = S.datos.juegos.filter(function(x){ return x.id === id; })[0]; return j ? 'vs ' + j.rival + ', ' + fecha(j.fecha) : id; }
++function filtrados(lista){
++  var q = S.buscar.trim().toLowerCase();
++  return lista.filter(function(c){ return (!S.fEstado || c.estado === S.fEstado) && (!S.fMetodo || c.metodo === S.fMetodo) && (!q || c.ref.toLowerCase().indexOf(q) >= 0 || c.id.toLowerCase().indexOf(q) >= 0); });
++}
++function pintarCobros(lista){
++  var l = filtrados(lista), MAXF = S.max;
++  var h = '<thead><tr><th>Boleto</th><th>Fecha</th><th>Juego</th><th>Zona</th><th class="d">Boletos</th><th>Método</th><th>Referencia</th><th class="d">Monto</th><th>Estado</th><th><span class="sr" style="position:absolute;left:-9999px">Acción</span></th></tr></thead><tbody>';
++  if (!l.length) h += '<tr><td colspan="10" class="vacio">No hay cobros con estos filtros.</td></tr>';
++  l.slice(0, MAXF).forEach(function(c){
++    var E2 = ESTADOS[c.estado];
++    h += '<tr><td class="num">' + c.id + '</td><td>' + c.cuando.toLocaleString('es-VE', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit'}) + '</td><td>' + esc(juegoN(c.juego)) + '</td><td>' + esc(zonaN(c.zona)) + '</td><td class="d">' + c.boletos + '</td><td>' + METODOS[c.metodo].n + '</td><td class="num">' + c.ref + '</td><td class="d">' + usd(c.monto) + '</td>' +
++      '<td><span class="estado" style="color:' + E2.c + '">' + E2.i + '<span style="color:var(--tinta)">' + E2.n + '</span></span></td><td>' + (c.estado === 'pendiente' ? '<button class="boton claro chico" type="button" data-verificar="' + c.id + '">Marcar verificado</button>' : '') + '</td></tr>';
++  });
++  $('tablaCobros').innerHTML = h + '</tbody>';
++  $('notaCobros').innerHTML = l.length > MAXF ? 'Se muestran los ' + MAXF + ' más recientes de ' + ent(l.length) + '. El CSV los incluye todos. <button class="enlace" type="button" id="masCobros">Mostrar 25 más</button>' : ent(l.length) + (l.length === 1 ? ' cobro.' : ' cobros.');
++}
++
++/* ---------- Cortes semanales y plan ---------- */
++function pintarCortes(){
++  var H = hoy(), lunes = new Date(H.getTime() - ((H.getDay() + 6) % 7) * DIA), filas = [];
++  for (var s = 0; s < 6; s++) {
++    var desde = new Date(lunes.getTime() - s * 7 * DIA), hasta = new Date(desde.getTime() + 7 * DIA);
++    var l = S.datos.cobros.filter(function(c){ return c.estado === 'confirmado' && c.cuando >= desde && c.cuando < hasta; });
++    var bruto = l.reduce(function(a, c){ return a + c.monto; }, 0), cargo = l.reduce(function(a, c){ return a + c.cargo; }, 0);
++    filas.push({desde:desde, hasta:new Date(hasta.getTime() - DIA), bruto:bruto, cargo:cargo, boletos:l.reduce(function(a, c){ return a + c.boletos; }, 0), estado: s === 0 ? 'abierto' : s === 1 ? 'facturado' : 'pagado'});
++  }
++  var et = {abierto:['Semana en curso', 'var(--suave)'], facturado:['Factura emitida', 'var(--aviso)'], pagado:['Pagada', 'var(--bien)']};
++  $('tablaCortes').innerHTML = '<thead><tr><th>Semana</th><th class="d">Boletos</th><th class="d">Cobrado</th><th class="d">Cargo por servicio</th><th>Estado</th></tr></thead><tbody>' + filas.map(function(f){
++    return '<tr><td>' + fecha(f.desde) + ' – ' + fecha(f.hasta) + '</td><td class="d">' + ent(f.boletos) + '</td><td class="d">' + usd(f.bruto) + '</td><td class="d">' + usd(f.cargo, 2) + '</td><td><span style="color:' + et[f.estado][1] + '">●</span> ' + et[f.estado][0] + '</td></tr>';
++  }).join('') + '</tbody>';
++}
++function pintarPlan(tot){
++  $('plan').innerHTML = [
++    ['Plan', 'Estadio'],
++    ['Licencia del portal', usd(LICENCIA) + ' al mes'],
++    ['Cargo por servicio', pct(CARGO) + ' por boleto, lo paga el comprador'],
++    ['Cargo cobrado en el período', usd(tot.cargo, 2)],
++    ['Recreación del estadio', 'Pago único al arrancar'],
++    ['Dónde llega el dinero', 'Cuentas del estadio']
++  ].map(function(x){ return '<dt>' + x[0] + '</dt><dd>' + x[1] + '</dd>'; }).join('');
++}
++
++/* ---------- Pintar todo ---------- */
++function pintar(){
++  var l = cobrosActivos();
++  var tot = pintarTiles(l); pintarVentas(l); S.ultima = l; pintarZonas(); pintarMetodos(l); pintarCobros(l); pintarCortes(); pintarPlan(tot);
++}
++function entrar(clave){
++  S.datos = generar(clave); S.juego = '';
++  var e = S.datos.e;
++  $('nombreEstadio').innerHTML = esc(e.nombre) + '<small>' + esc(e.ciudad + ', ' + e.estado) + ' · capacidad ' + ent(e.capacidad) + '</small>';
++  $('verDemo').href = '/?estadio=' + encodeURIComponent(clave);
++  document.documentElement.style.setProperty('--naranja', e.acento || '#FF8A1F');
++  document.title = 'Portal: ' + e.corto + ' | Tribuna';
++  $('filtroJuego').innerHTML = '<option value="">Todos los juegos</option>' + S.datos.juegos.slice().reverse().map(function(j){ return '<option value="' + j.id + '">' + (j.fecha > hoy() ? 'Próximo: ' : '') + 'vs ' + j.rival + ', ' + fechaLarga(j.fecha) + (j.clasico ? ' (clásico)' : '') + '</option>'; }).join('');
++  $('acceso').hidden = true; $('panel').hidden = false;
++  try { history.replaceState(null, '', '?estadio=' + encodeURIComponent(clave)); sessionStorage.setItem('tribuna-portal', clave); } catch (e2) {}
++  pintar(); window.scrollTo(0, 0);
++}
++
++/* ---------- Eventos ---------- */
++var anchoPrevio = 0; window.addEventListener('resize', function(){ var w = $('grafVentas').clientWidth; if (S.ultima && Math.abs(w - anchoPrevio) > 40) { anchoPrevio = w; pintarVentas(S.ultima); } });
++var sel = $('elegirEstadio');
++sel.innerHTML = Object.keys(EST).map(function(k){ return '<option value="' + k + '">' + esc(EST[k].nombre) + ' (' + esc(EST[k].ciudad) + ')</option>'; }).join('');
++var pedido = window.TRIBUNA_ESTADIO ? window.TRIBUNA_ESTADIO.clave : null, guardado = null;
++try { guardado = sessionStorage.getItem('tribuna-portal'); } catch (e3) {}
++if (pedido) sel.value = pedido;
++$('formAcceso').addEventListener('submit', function(ev){ ev.preventDefault(); entrar(sel.value); });
++if (guardado && EST[guardado] && (!pedido || pedido === guardado)) entrar(guardado);
++$('salir').addEventListener('click', function(){ try { sessionStorage.removeItem('tribuna-portal'); } catch (e4) {} $('panel').hidden = true; $('acceso').hidden = false; sel.focus(); });
++document.querySelector('.rango').addEventListener('click', function(ev){
++  var b = ev.target.closest('button'); if (!b) return;
++  S.dias = +b.getAttribute('data-dias'); S.juego = ''; $('filtroJuego').value = '';
++  Array.prototype.forEach.call(this.querySelectorAll('button'), function(x){ x.setAttribute('aria-pressed', x === b); });
++  pintar();
++});
++$('filtroJuego').addEventListener('change', function(){ S.juego = this.value; pintar(); });
++$('fEstado').addEventListener('change', function(){ S.fEstado = this.value; pintarCobros(cobrosActivos()); });
++$('fMetodo').addEventListener('change', function(){ S.fMetodo = this.value; pintarCobros(cobrosActivos()); });
++$('fBuscar').addEventListener('input', function(){ S.buscar = this.value; pintarCobros(cobrosActivos()); });
++$('notaCobros').addEventListener('click', function(ev){ if (ev.target.id === 'masCobros') { S.max += 25; pintarCobros(cobrosActivos()); } });
++$('tablaCobros').addEventListener('click', function(ev){
++  var b = ev.target.closest('[data-verificar]'); if (!b) return;
++  var id = b.getAttribute('data-verificar');
++  S.datos.cobros.forEach(function(c){ if (c.id === id) c.estado = 'confirmado'; });
++  pintar();
++});
++document.querySelector('[data-tabla="ventas"]').addEventListener('click', function(){
++  var t = $('tablaVentas'), abierta = t.hidden; t.hidden = !abierta; this.setAttribute('aria-expanded', abierta); this.textContent = abierta ? 'Ocultar tabla' : 'Ver como tabla';
++});
++$('exportar').addEventListener('click', function(){
++  var l = filtrados(cobrosActivos()), filas = [['boleto', 'fecha', 'juego', 'zona', 'boletos', 'metodo', 'referencia', 'monto_usd', 'cargo_servicio_usd', 'estado']];
++  l.forEach(function(c){ filas.push([c.id, c.cuando.toISOString(), juegoN(c.juego), zonaN(c.zona), c.boletos, METODOS[c.metodo].n, c.ref, c.monto, c.cargo, ESTADOS[c.estado].n]); });
++  var csv = '﻿' + filas.map(function(f){ return f.map(function(v){ v = String(v); return /[",;\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n');
++  var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
++  a.download = 'cobros-' + S.datos.clave + '-demo.csv'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
++});
++})();
++</script>
++</body>
++</html>
+diff --git a/robots.txt b/robots.txt
+index fdaccfb..f8b8737 100644
+--- a/robots.txt
++++ b/robots.txt
+@@ -1,4 +1,5 @@
+ User-agent: *
+ Allow: /
++Disallow: /portal/
+ 
+ Sitemap: https://tribuna.qiuagency.com/sitemap.xml
+diff --git a/sitemap.xml b/sitemap.xml
+index 49c4df1..c40be3a 100644
+--- a/sitemap.xml
++++ b/sitemap.xml
+@@ -1,6 +1,7 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+   <url><loc>https://tribuna.qiuagency.com/</loc><lastmod>2026-11-23</lastmod><priority>1.0</priority></url>
++  <url><loc>https://tribuna.qiuagency.com/estadios.html</loc><lastmod>2026-11-23</lastmod><priority>0.8</priority></url>
+   <url><loc>https://tribuna.qiuagency.com/privacidad.html</loc><lastmod>2026-11-23</lastmod><priority>0.3</priority></url>
+   <url><loc>https://tribuna.qiuagency.com/terminos.html</loc><lastmod>2026-11-23</lastmod><priority>0.3</priority></url>
+ </urlset>
+diff --git a/sw.js b/sw.js
+new file mode 100644
+index 0000000..1632bc2
+--- /dev/null
++++ b/sw.js
+@@ -0,0 +1,31 @@
++/* Tribuna: caché sin conexión.
++   Imágenes, cuadros del recorrido y fuentes: primero la caché (no cambian; si cambian, sube VERSION).
++   Páginas, scripts y estilos: primero la red, con la caché de respaldo si no hay señal. */
++var VERSION = 'tribuna-v2';
++var ESTATICOS = VERSION + '-estaticos', PAGINAS = VERSION + '-paginas';
++var INICIO = ['/', '/index.html', '/estadios.js', '/poster.webp', '/fuentes/titulo-800.woff2', '/fuentes/texto-400.woff2'];
++
++self.addEventListener('install', function(ev){
++  ev.waitUntil(caches.open(PAGINAS).then(function(c){ return c.addAll(INICIO); }).then(function(){ return self.skipWaiting(); }));
++});
++self.addEventListener('activate', function(ev){
++  ev.waitUntil(caches.keys().then(function(ks){
++    return Promise.all(ks.filter(function(k){ return k.indexOf(VERSION) !== 0; }).map(function(k){ return caches.delete(k); }));
++  }).then(function(){ return self.clients.claim(); }));
++});
++self.addEventListener('fetch', function(ev){
++  var r = ev.request, u = new URL(r.url);
++  if (r.method !== 'GET' || u.origin !== location.origin) return;
++  if (/\.(webp|avif|png|jpg|svg|ico|woff2)$/.test(u.pathname)) {
++    ev.respondWith(caches.open(ESTATICOS).then(function(c){
++      return c.match(r).then(function(m){
++        return m || fetch(r).then(function(res){ if (res.ok) c.put(r, res.clone()); return res; });
++      });
++    }));
++    return;
++  }
++  ev.respondWith(fetch(r).then(function(res){
++    if (res.ok) { var copia = res.clone(); caches.open(PAGINAS).then(function(c){ c.put(r, copia); }); }
++    return res;
++  }).catch(function(){ return caches.match(r).then(function(m){ return m || caches.match('/'); }); }));
++});

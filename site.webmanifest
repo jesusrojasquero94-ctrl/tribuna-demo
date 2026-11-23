@@ -1,0 +1,27 @@
+{
+ "name": "Tribuna",
+ "short_name": "Tribuna",
+ "description": "Boletería inmersiva para estadios venezolanos. Demo de Qiu Agency.",
+ "lang": "es-VE",
+ "start_url": "/",
+ "display": "standalone",
+ "background_color": "#070D1A",
+ "theme_color": "#070D1A",
+ "icons": [
+  {
+   "src": "/icono-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/icono-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "/icono.svg",
+   "sizes": "any",
+   "type": "image/svg+xml"
+  }
+ ]
+}

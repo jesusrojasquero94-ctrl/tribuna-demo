@@ -6,7 +6,6 @@ on:
   push:
     paths:
       - 'herramientas/cambios.patch'
-      - '.github/workflows/tribuna-imagenes.yml'
   workflow_dispatch:
 
 permissions:

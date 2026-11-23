@@ -28,6 +28,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" as="image" href="poster.webp" fetchpriority="high">
+<link rel="preload" as="image" href="cuadros/b/001.webp">
 <link rel="preload" as="font" type="font/woff2" href="fuentes/titulo-800.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fuentes/texto-400.woff2" crossorigin>
 <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebSite", "name": "Tribuna", "url": "https://tribuna.qiuagency.com/", "inLanguage": "es-VE", "publisher": {"@type": "Organization", "name": "Qiu Agency", "url": "https://qiuagency.com/", "parentOrganization": {"@type": "Organization", "legalName": "Qiu Capital Group C.A."}}}, {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "¿Puedo comprar boletos reales en esta página?", "acceptedAnswer": {"@type": "Answer", "text": "No. Tribuna es una demostración de Qiu Agency. Los equipos, el partido y los precios son inventados, y los pagos son simulados."}}, {"@type": "Question", "name": "¿Qué estadios se pueden recrear?", "acceptedAnswer": {"@type": "Answer", "text": "Cualquier estadio o arena del país: béisbol, fútbol, baloncesto o conciertos. Recreamos el recinto en video, zona por zona, con la vista desde cada sector."}}, {"@type": "Question", "name": "¿Con qué métodos de pago funciona?", "acceptedAnswer": {"@type": "Answer", "text": "La experiencia está pensada para Pago Móvil, Zelle y USDT, conectados a la pasarela que ya usa tu boletería. En esta demo ningún pago es real."}}, {"@type": "Question", "name": "¿Reemplaza mi sistema de boletería?", "acceptedAnswer": {"@type": "Answer", "text": "No. Se conecta a él. El inventario, los precios y la pasarela de pago siguen siendo tuyos; Tribuna pone la experiencia de elegir el puesto."}}, {"@type": "Question", "name": "¿Funciona en teléfonos con datos móviles?", "acceptedAnswer": {"@type": "Answer", "text": "Sí. El recorrido se descarga por partes, empezando por lo primero que ves, para que abra rápido aunque la señal sea floja."}}, {"@type": "Question", "name": "¿Qué datos guarda esta página?", "acceptedAnswer": {"@type": "Answer", "text": "Ninguno personal. Solo recuerda en tu navegador si aceptaste o rechazaste las cookies de estadística, que se activan únicamente si las aceptas."}}]}]</script>
@@ -253,6 +254,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
 .preguntas a{color:#fff;text-underline-offset:3px}
 
 /* Pie */
+.enlaces-equipos{display:flex;flex-wrap:wrap;gap:10px}
 .pie nav{display:flex;flex-wrap:wrap;gap:8px 22px;margin:14px 0 0;font-size:14px}
 .pie nav a,.pie nav .enlace{color:#DCE4F2;text-underline-offset:3px;min-height:32px;display:inline-flex;align-items:center}
 .pie nav a:hover,.pie nav .enlace:hover{color:#fff}
@@ -378,6 +380,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
     <div class="dos">
       <div>
         <p>Tribuna no reemplaza tu boletería: se conecta a ella. El inventario, los precios y la pasarela de pago siguen siendo tuyos. Nosotros ponemos la experiencia de elegir el puesto.</p>
+        <p class="enlaces-equipos"><a class="boton claro" href="/estadios.html">Ver la demo en cada estadio</a> <a class="boton claro" href="/portal/" data-con-estadio>Abrir el portal del cliente</a></p>
         <p id="contacto" hidden></p>
       </div>
       <ul>
@@ -385,6 +388,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
         <li>Funciona para béisbol, fútbol, baloncesto y conciertos.</li>
         <li>Precios distintos para clásicos, abonos y palcos, con pago en cuotas para los abonos.</li>
         <li>Sale con tu marca y en tu dominio.</li>
+        <li>Portal para el estadio: ventas, cobros por Pago Móvil, Zelle y USDT, conciliación y liquidaciones en tiempo real.</li>
       </ul>
     </div>
   </div>
@@ -408,10 +412,12 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
 <footer class="pie">
   <div class="ancho">
     <p><strong>Sitio desarrollado por Qiu Agency, de Qiu Capital Group C.A. RIF: J508801920.</strong></p>
-    <p>Esta página es una demostración. Los equipos "Cóndores" y "Corsarios" no existen. El estadio es una recreación generada con inteligencia artificial, inspirada en el Monumental de Caracas; no es una imagen del estadio real. El sitio no está afiliado a ningún equipo, liga ni estadio real. No se venden boletos y no se guarda ningún dato personal.</p>
+    <p>Esta página es una demostración. Los equipos "Cóndores" y "Corsarios" no existen. <span data-nota-estadio>El estadio es una recreación generada con inteligencia artificial, inspirada en el Monumental de Caracas; no es una imagen del estadio real.</span> El sitio no está afiliado a ningún equipo, liga ni estadio real. No se venden boletos y no se guarda ningún dato personal.</p>
     <nav aria-label="Legal">
       <a href="/privacidad.html">Política de privacidad</a>
       <a href="/terminos.html">Términos de uso</a>
+      <a href="/estadios.html">Estadios</a>
+      <a href="/portal/" data-con-estadio>Portal del cliente</a>
       <button type="button" class="enlace" data-cookies>Preferencias de cookies</button>
       <a href="https://wa.me/584248831167" rel="noopener">Contacto</a>
     </nav>
@@ -423,18 +429,22 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
 <script>
 (function(){var a=document.getElementById('aviso');function m(){document.documentElement.style.setProperty('--aviso-h',a.offsetHeight+'px')}m();window.addEventListener('resize',m)})();
 </script>
+<script src="estadios.js"></script>
 <script>
 /* Recorrido: los cuadros de los videos avanzan con el scroll y se detienen en tres paradas donde se puede elegir */
 (function(){
   'use strict';
-  var C = window.TRIBUNA_CUADROS = {"base": "cuadros/", "ext": ".webp", "n": 180, "clips": [60, 60, 60]};
+  /* Tres juegos de cuadros: b = base liviana (640 px, WebP) que llega completa primero;
+     cuadros/ = 960 px WebP; hd/ = 1920 px AVIF reescalados. Los de detalle se piden solo
+     alrededor del punto donde va el scroll y se sueltan al alejarse, para no llenar la memoria. */
+  var C = window.TRIBUNA_CUADROS = {n: 180, clips: [60, 60, 60], base: 'cuadros/b/', med: 'cuadros/', hd: 'cuadros/hd/'};
   var hist = document.getElementById('historia'), cv = document.getElementById('secuencia');
   if (!hist || !cv || !cv.getContext) return;
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var fijo = hist.querySelector('.fijo'), capa = document.getElementById('paradas'), globo = document.getElementById('globoH');
   var cajaMomentos = hist.querySelector('.momentos'), cabeza = hist.querySelector('.cabeza');
-  var g = cv.getContext('2d'), textos = Array.prototype.slice.call(hist.querySelectorAll('.momento')), barra = hist.querySelector('.carga i');
-  var N = C.n, cuadros = new Array(N), listos = 0, ancho = 0, alto = 0, dpr = 1, ultimo = '';
+  var g = cv.getContext('2d', {alpha: false}), textos = Array.prototype.slice.call(hist.querySelectorAll('.momento')), barra = hist.querySelector('.carga i');
+  var N = C.n, base = new Array(N), fino = new Array(N), listos = 0, ancho = 0, alto = 0, dpr = 1, ultimo = '';
   var W = .012;
   hist.classList.remove('sinvideo');
 
@@ -445,21 +455,74 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
   var FOCOS = {zonas:{ancho:[240,150,785,515], alto:[240,150,785,515]}, asientos:{ancho:[62,62,922,520], alto:[205,62,820,520]}, palco:{ancho:[0,250,1024,576], alto:[190,250,834,576]}};
   var RANGOS = textos.map(function(el){ return el.getAttribute('data-r').split(',').map(Number); });
 
-  function ruta(i){ var s = String(i + 1); while (s.length < 3) s = '0' + s; return C.base + s + C.ext; }
-  // Orden de carga: primero uno de cada 16, luego de 8, de 4, de 2 y el resto
-  var orden = [], visto = {};
+  function num(i){ var s = String(i + 1); while (s.length < 3) s = '0' + s; return s; }
+  // Red: con ahorro de datos o 2G no se piden cuadros de detalle salvo los de las paradas
+  var red = navigator.connection || {}, ahorro = !!red.saveData || /(^|-)2g$/.test(red.effectiveType || '');
+  var avif = false, prueba = new Image();
+  prueba.onload = function(){ avif = prueba.width > 0; elegirDetalle(); };
+  prueba.src = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADrbWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAAAAAAAOcGl0bQAAAAAAAQAAAB5pbG9jAAAAAEQAAAEAAQAAAAEAAAETAAAAKAAAAChpaW5mAAAAAAABAAAAGmluZmUCAAAAAAEAAGF2MDFDb2xvcgAAAABqaXBycAAAAEtpcGNvAAAAFGlzcGUAAAAAAAAAAQAAAAEAAAAQcGl4aQAAAAADCAgIAAAADGF2MUOBAAwAAAAAE2NvbHJuY2x4AAEADQAGgAAAABdpcG1hAAAAAAAAAAEAAQQBAoMEAAAAMG1kYXQSAAoIGAAGiAhoNCAyGhlHh4Yhh5555oAAAJBAyRxhSytNj1FFTqSg';
+
+  // Orden de la base: las paradas, luego uno de cada 16, de 8, de 4, de 2 y el resto
+  var orden = [], visto = {}, PARADAS_C = [0, 59, 60, 119, 120, 179];
+  PARADAS_C.forEach(function(i){ visto[i] = 1; orden.push(i); });
   [16, 8, 4, 2, 1].forEach(function(paso){ for (var i = 0; i < N; i += paso) if (!visto[i]) { visto[i] = 1; orden.push(i); } });
-  [60, 120, 179].forEach(function(i, k){ orden.splice(orden.indexOf(i), 1); orden.splice(1 + k, 0, i); });
-  var siguiente = 0, activos = 0;
+  var siguiente = 0, activos = 0, kbps = [];
   function cargar(){
     while (activos < 6 && siguiente < orden.length) {
       (function(i){
-        var im = new Image(); activos++;
+        var im = new Image(), t0 = performance.now(); activos++;
         im.decoding = 'async';
-        im.onload = function(){ cuadros[i] = im; listos++; activos--; barra.style.width = (100 * listos / N).toFixed(1) + '%'; if (listos === N) hist.classList.add('cargado'); ultimo = ''; pedir(); cargar(); };
+        im.onload = function(){
+          base[i] = im; listos++; activos--;
+          medirRed(im.src, performance.now() - t0);
+          barra.style.width = (100 * listos / N).toFixed(1) + '%'; if (listos === N) hist.classList.add('cargado');
+          if (cerca(i)) ultimo = '';
+          pedir(); cargar(); cargarDetalle();
+        };
         im.onerror = function(){ activos--; cargar(); };
-        im.src = ruta(i);
+        im.src = C.base + num(i) + '.webp';
       })(orden[siguiente++]);
+    }
+  }
+  function medirRed(src, ms){
+    var e = performance.getEntriesByName && performance.getEntriesByName(src)[0], b = e && (e.encodedBodySize || e.transferSize);
+    if (b && ms > 20 && kbps.length < 40) kbps.push(b * 8 / ms);
+  }
+  function redLenta(){ if (kbps.length < 8) return false; var s = kbps.slice().sort(function(a, b){ return a - b; }); return s[s.length >> 1] < 1500; }
+
+  /* ---------- Detalle alrededor del scroll ---------- */
+  var detalle = null, enCurso = {}, fallo = {}, activosD = 0, centro = 0, haciaAdelante = true;
+  function elegirDetalle(){
+    // Ancho real con que se pinta el cuadro en pantalla (cubre el visor)
+    var px = 1024 * Math.max((fijo.clientWidth || 1) / 1024, (fijo.clientHeight || 1) / 576) * Math.min(window.devicePixelRatio || 1, 2);
+    var nuevo = px > 1150 && avif ? 'hd' : px > 700 ? 'med' : null;
+    if (nuevo !== detalle) { detalle = nuevo; fino = new Array(N); enCurso = {}; fallo = {}; ultimo = ''; cargarDetalle(); }
+  }
+  function cerca(i){ return Math.abs(i - centro) <= 1.5; }
+  function radio(){ return ahorro ? 0 : redLenta() ? 3 : detalle === 'hd' ? (window.innerWidth < 900 ? 10 : 16) : 14; }
+  function deseados(){
+    // Mientras llega la base, solo el detalle de lo que está en pantalla
+    var r = listos < N ? Math.min(2, radio()) : radio(), lista = [], d, a = haciaAdelante ? 1 : -1, c = Math.round(centro);
+    for (d = 0; d <= r; d++) { lista.push(c + a * d); if (d && d <= r / 2) lista.push(c - a * d); }
+    if (listos === N) PARADAS_C.forEach(function(i){ lista.push(i); });
+    return lista.filter(function(i){ return i >= 0 && i < N; });
+  }
+  function cargarDetalle(){
+    if (!detalle || listos < 24) return;
+    var lista = deseados(), guardar = {}, r = radio();
+    lista.forEach(function(i){ guardar[i] = 1; });
+    // Soltar lo que quedó lejos
+    for (var k = 0; k < N; k++) if (fino[k] && !guardar[k] && Math.abs(k - centro) > r + 6) fino[k] = null;
+    for (var j = 0; j < lista.length && activosD < 3; j++) {
+      var i = lista[j]; if (fino[i] || enCurso[i] || fallo[i] || !base[i]) continue;
+      (function(i, nivel){
+        var im = new Image(); enCurso[i] = 1; activosD++;
+        im.decoding = 'async'; if ('fetchPriority' in im) im.fetchPriority = 'low';
+        var listo = function(){ delete enCurso[i]; activosD--; if (nivel === detalle) { fino[i] = im; if (cerca(i)) { ultimo = ''; pedir(); } } cargarDetalle(); };
+        im.onload = function(){ im.decode ? im.decode().then(listo, listo) : listo(); };
+        im.onerror = function(){ delete enCurso[i]; fallo[i] = 1; activosD--; };
+        im.src = nivel === 'hd' ? C.hd + num(i) + '.avif' : C.med + num(i) + '.webp';
+      })(i, detalle);
     }
   }
   cargar();
@@ -469,7 +532,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
   function medir(){
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     var w = Math.round(cv.clientWidth * dpr), h = Math.round(cv.clientHeight * dpr);
-    if (w && h && (w !== ancho || h !== alto)) { ancho = cv.width = w; alto = cv.height = h; ultimo = ''; regiones(); }
+    if (w && h && (w !== ancho || h !== alto)) { ancho = cv.width = w; alto = cv.height = h; ultimo = ''; regiones(); elegirDetalle(); }
   }
   // Zona libre de la pantalla donde cabe el estadio en cada parada (lo que no tapa el texto)
   function regiones(){
@@ -501,7 +564,8 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
   }
 
   /* ---------- Dibujo ---------- */
-  function cercano(i){ if (cuadros[i]) return cuadros[i]; for (var d = 1; d < N; d++) { if (cuadros[i - d]) return cuadros[i - d]; if (cuadros[i + d]) return cuadros[i + d]; } return null; }
+  function mejor(i){ return fino[i] || base[i] || null; }
+  function cercano(i){ var m = mejor(i); if (m) return m; for (var d = 1; d < N; d++) { if (m = mejor(i - d)) return m; if (m = mejor(i + d)) return m; } return null; }
   // Al final de cada clip el último tramo se funde con el primer cuadro del siguiente, que es una parada
   var BORDES = [], acum = 0; C.clips.slice(0, -1).forEach(function(n){ acum += n; BORDES.push(acum); });
   var FUNDIDO = 6;
@@ -520,7 +584,9 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
         pintarIm(cercano(Math.min(BORDES[b] - 1, Math.round(x))), 1, r); pintarIm(cercano(BORDES[b]), t, r); return;
       }
     }
-    pintarIm(cercano(Math.round(x)), 1, r);
+    // Entre dos cuadros vecinos se funden ambos: el movimiento se ve continuo aunque el scroll vaya lento
+    var i0 = Math.floor(x), f = x - i0, a = cercano(i0), b2 = f > .04 && i0 + 1 < N && BORDES.indexOf(i0 + 1) < 0 ? mejor(i0 + 1) : null;
+    pintarIm(a, 1, r); if (b2 && b2 !== a) pintarIm(b2, f, r);
   }
   function dibujar(x, cam){
     var r = [cam.ox * dpr, cam.oy * dpr, 1024 * cam.s * dpr, 576 * cam.s * dpr];
@@ -536,7 +602,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
   function cuadroDe(p){
     for (var k = 0; k < SEGS.length; k++) {
       var s = SEGS[k];
-      if (p <= s[1] || k === SEGS.length - 1) { var t = s[1] > s[0] ? Math.min(1, Math.max(0, (p - s[0]) / (s[1] - s[0]))) : 0; return Math.round((s[2] + (s[3] - s[2]) * t) * 4) / 4; }
+      if (p <= s[1] || k === SEGS.length - 1) { var t = s[1] > s[0] ? Math.min(1, Math.max(0, (p - s[0]) / (s[1] - s[0]))) : 0; return Math.round((s[2] + (s[3] - s[2]) * t) * 16) / 16; }
     }
     return 0;
   }
@@ -577,8 +643,9 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
     corriendo = 0; leer(); medir();
     actual += (objetivo - actual) * .14; if (Math.abs(objetivo - actual) < .0003) actual = objetivo;
     var i = cuadroDe(actual), cam = camara(actual);
+    if (Math.abs(i - centro) >= 1) { haciaAdelante = i > centro; centro = i; cargarDetalle(); }
     var clave = i + '|' + cam.s.toFixed(4) + '|' + cam.ox.toFixed(1) + '|' + cam.oy.toFixed(1);
-    if (clave !== ultimo && listos) { dibujar(i, cam); if (cuadros[Math.round(i)]) ultimo = clave; }
+    if (clave !== ultimo && listos) { dibujar(i, cam); if (base[Math.floor(i)] && base[Math.min(N - 1, Math.ceil(i))]) ultimo = clave; }
     textosEn(actual); capaEn(cam);
     if (actual !== objetivo || ultimo !== clave) corriendo = requestAnimationFrame(paso);
   }
@@ -641,7 +708,7 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
   function pintarFichas(){
     var f = {}, p = S.puesto, z;
     if (S.zona) { z = zona(S.zona); f.zonas = dato(esc(z.n), '$' + z.precio + ' por asiento, ' + T.libres(z.id) + ' libres') + boton('asientos', 'Ver sus asientos'); }
-    else f.zonas = dato('11 zonas', 'De $5 a $40 por asiento') + boton('asientos', 'Ver asientos', true);
+    else { var ps = T.zonas.map(function(q){ return q.precio; }); f.zonas = dato(T.zonas.length + ' zonas', 'De $' + Math.min.apply(null, ps) + ' a $' + Math.max.apply(null, ps) + ' por asiento') + boton('asientos', 'Ver asientos', true); }
     z = zona(zonaAsientos());
     if (p && p.z !== 'vip') f.asientos = dato(nombrePuesto(p), esc(z.n) + ', $' + z.precio) + boton('reservar', 'Reservar') + boton('tuyo', 'Seguir', true);
     else f.asientos = dato(esc(z.n), '$' + z.precio + ' por asiento, ' + T.libres(z.id) + ' libres') + boton('zonas', 'Cambiar zona', true);
@@ -705,7 +772,8 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
 'use strict';
 /* ---------- Datos de la demo (todo ficticio) ---------- */
 var CONTACTO = 'https://wa.me/584248831167';
-var PARTIDO = {local:'Cóndores', visita:'Corsarios', fecha:'Sábado 5 de diciembre, 7:00 p. m.', lugar:'Estadio de demostración, inspirado en el Monumental de Caracas'};
+var EST = window.TRIBUNA_ESTADIO;
+var PARTIDO = {local:'Cóndores', visita:'Corsarios', fecha:'Sábado 5 de diciembre, 7:00 p. m.', lugar: EST ? EST.nombre + ', ' + EST.ciudad : 'Estadio de demostración, inspirado en el Monumental de Caracas'};
 var MAX = 6;
 var ZONAS = [
   {id:'sc', n:'Sillas centrales',          precio:20, occ:46, v:{img:'vista-home-w',   zoom:1.12, cy:300}},
@@ -721,6 +789,12 @@ var ZONAS = [
   {id:'gi', n:'Gradas jardín izquierdo',   precio:5,  occ:15, v:{img:'vista-jardin-w', zoom:1,    cy:288, flip:true}}
 ];
 var LETRAS = 'ABCDEFGH';
+// Cada estadio pone sus nombres de zona y sus precios sobre las mismas 11 zonas dibujadas
+if (EST && EST.zonas) ZONAS.forEach(function(z){ var o = EST.zonas[z.id]; if (o) { z.n = o[0]; z.precio = o[1]; } });
+
+/* ---------- Imágenes: versión de 2048 px en pantallas grandes ---------- */
+var redT = navigator.connection || {}, IMG_HD = !redT.saveData && !/(^|-)2g$/.test(redT.effectiveType || '') && Math.max(screen.width, screen.height) * Math.min(window.devicePixelRatio || 1, 2) > 1400;
+function imagen(nombre){ return nombre + (IMG_HD ? '-hd' : '') + '.webp'; }
 
 /* ---------- Zonas trazadas sobre las dos imágenes aéreas ---------- */
 function banda(A,B,i,j){var p=[],k;for(k=i;k<=j;k++)p.push(A[k]);for(k=j;k>=i;k--)p.push(B[k]);return p}
@@ -728,8 +802,8 @@ function formas(D,M,F,GI,GD){return {
   li:[banda(D,M,0,2)], pi:[banda(D,M,2,4)], sc:[banda(D,M,4,8)], pd:[banda(D,M,8,10)], ld:[banda(D,M,10,12)],
   ti:[banda(M,F,0,4)], cl:[banda(M,F,4,5),banda(M,F,7,8)], vip:[banda(M,F,5,7)], td:[banda(M,F,8,12)], gi:[GI], gd:[GD]}}
 var AEREO = {
-  ancho:{img:'aereo-w.webp', vb:[0,0,1024,576], ajuste:'xMidYMid slice', w:1024, h:576, f:formas([[322,262],[359,295],[379,330],[409,365],[449,394],[488,414],[512,421],[538,414],[576,394],[616,365],[646,330],[666,295],[702,262]],[[289,262],[291,298],[304,332],[332,366],[374,401],[426,433],[512,458],[599,433],[651,401],[692,366],[721,332],[734,298],[736,262]],[[250,250],[244,300],[256,341],[284,381],[329,421],[392,461],[512,492],[632,461],[696,421],[741,381],[769,341],[781,300],[775,250]],[[478,162],[440,165],[400,178],[365,191],[331,210],[289,235],[320,259],[345,232],[380,210],[415,195],[450,188],[479,185]],[[545,162],[585,165],[625,178],[660,191],[695,210],[735,235],[704,259],[679,232],[645,210],[610,195],[575,188],[546,185]])},
-  alto: {img:'aereo.webp',   vb:[0,100,1024,880], ajuste:'xMidYMid meet', w:1024, h:1024, f:formas([[236,452],[262,520],[300,585],[350,655],[410,712],[468,742],[512,750],[558,742],[618,708],[678,650],[724,580],[756,512],[788,452]],[[172,452],[180,540],[214,622],[268,702],[338,772],[420,816],[512,830],[602,816],[686,772],[756,702],[810,622],[844,540],[852,452]],[[108,428],[112,560],[158,672],[232,772],[328,852],[428,897],[512,908],[598,897],[700,852],[792,772],[862,672],[906,560],[916,428]],[[465,263],[410,270],[350,290],[290,320],[235,355],[178,395],[215,425],[262,385],[322,345],[380,312],[468,305]],[[558,263],[610,270],[670,290],[730,320],[790,355],[848,398],[812,425],[765,388],[705,348],[645,315],[556,305]])}
+  ancho:{img:imagen('aereo-w'), vb:[0,0,1024,576], ajuste:'xMidYMid slice', w:1024, h:576, f:formas([[322,262],[359,295],[379,330],[409,365],[449,394],[488,414],[512,421],[538,414],[576,394],[616,365],[646,330],[666,295],[702,262]],[[289,262],[291,298],[304,332],[332,366],[374,401],[426,433],[512,458],[599,433],[651,401],[692,366],[721,332],[734,298],[736,262]],[[250,250],[244,300],[256,341],[284,381],[329,421],[392,461],[512,492],[632,461],[696,421],[741,381],[769,341],[781,300],[775,250]],[[478,162],[440,165],[400,178],[365,191],[331,210],[289,235],[320,259],[345,232],[380,210],[415,195],[450,188],[479,185]],[[545,162],[585,165],[625,178],[660,191],[695,210],[735,235],[704,259],[679,232],[645,210],[610,195],[575,188],[546,185]])},
+  alto: {img:imagen('aereo'), vb:[0,100,1024,880], ajuste:'xMidYMid meet', w:1024, h:1024, f:formas([[236,452],[262,520],[300,585],[350,655],[410,712],[468,742],[512,750],[558,742],[618,708],[678,650],[724,580],[756,512],[788,452]],[[172,452],[180,540],[214,622],[268,702],[338,772],[420,816],[512,830],[602,816],[686,772],[756,702],[810,622],[844,540],[852,452]],[[108,428],[112,560],[158,672],[232,772],[328,852],[428,897],[512,908],[598,897],[700,852],[792,772],[862,672],[906,560],[916,428]],[[465,263],[410,270],[350,290],[290,320],[235,355],[178,395],[215,425],[262,385],[322,345],[380,312],[468,305]],[[558,263],[610,270],[670,290],[730,320],[790,355],[848,398],[812,425],[765,388],[705,348],[645,315],[556,305]])}
 };
 /* ---------- Asientos trazados sobre las fotos (1024 x 576) ---------- */
 var FILAS = [[392,512,[158,259,360,461,562,662,763,864],92],[272,384,[184,277,370,464,557,650,744,838],84],[166,268,[206,293,380,467,554,641,728,816],78],[70,164,[227,309,390,471,553,634,716,797],72]];
@@ -771,7 +845,7 @@ function dibujarEstadio(){
   lienzo.setAttribute('aria-label','Vista aérea del estadio. Elige una zona.');
 }
 function dibujarAsientos(){
-  var z=E.zona, img=z.palco?'palco-w.webp':'asientos-w.webp', h='<image href="'+img+'" x="0" y="0" width="1024" height="576"/>';
+  var z=E.zona, img=z.palco?imagen('palco-w'):imagen('asientos-w'), h='<image href="'+img+'" x="0" y="0" width="1024" height="576"/>';
   sillas(z).forEach(function(s){
     var oc=ocupada(z,s), mia=E.sel.indexOf(s.id)>=0, w=f1(s.x1-s.x0), al=f1(s.y1-s.y0), r='x="'+f1(s.x0)+'" y="'+f1(s.y0)+'" width="'+w+'" height="'+al+'" rx="'+s.rx+'"';
     h+='<g class="silla'+(oc?' ocupada':'')+(mia?' mia':'')+'" data-s="'+s.id+'" role="button" tabindex="'+(oc?-1:0)+'" aria-disabled="'+oc+'" aria-pressed="'+mia+'" aria-label="'+puesto(s)+(oc?', ocupado':mia?', elegido':', libre')+'"><rect class="tinte" '+r+'/><rect class="brillo" '+r+'/><rect class="borde" '+r+'/></g>';
@@ -788,7 +862,7 @@ function cajaVista(z,s){
 }
 function dibujarVista(){
   var z=E.zona, s=elegidas()[E.sel.length-1], v=z.v;
-  lienzo.innerHTML='<image href="'+v.img+'.webp" x="0" y="0" width="1024" height="576"'+(v.flip?' transform="translate(1024 0) scale(-1 1)"':'')+'/>';
+  lienzo.innerHTML='<image href="'+imagen(v.img)+'" x="0" y="0" width="1024" height="576"'+(v.flip?' transform="translate(1024 0) scale(-1 1)"':'')+'/>';
   fijarCaja(cajaVista(z,s),'xMidYMid slice');
   lienzo.setAttribute('aria-label','Vista aproximada del terreno desde '+z.n);
 }
@@ -1000,7 +1074,33 @@ window.__tribuna={zonas:ZONAS,zona:zonaPorId,
   ocupada:function(zid,sid){var z=zonaPorId(zid),s=z&&sillaPorId(z,sid);return !s||ocupada(z,s)},
   libres:function(zid){return libres(zonaPorId(zid))},
   reservar:function(zid,sid){var z=zonaPorId(zid);if(!z)return;E.zona=z;E.nivel=1;E.sel=[sid];pintar();abrirPago()}};
+// La taquilla se dibuja de una vez (el panel y la lista de zonas son texto), pero sus fotos grandes
+// esperan a que la taquilla esté cerca de la pantalla para no competir con el recorrido.
+var foto=AEREO.ancho.img, fotoA=AEREO.alto.img;
+AEREO.ancho.img=AEREO.alto.img='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 pintar();
+function soltarFotos(){if(AEREO.ancho.img===foto)return;AEREO.ancho.img=foto;AEREO.alto.img=fotoA;if(E.nivel===0)dibujarEstadio()}
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){if(es.some(function(e){return e.isIntersecting})){soltarFotos();io.disconnect()}},{rootMargin:'120% 0px'});io.observe(escenario)}else soltarFotos();
+['pointerdown','keydown','focusin'].forEach(function(t){escenario.addEventListener(t,soltarFotos,{once:true})});
+})();
+</script>
+<script>
+/* Textos del estadio elegido, enlaces y caché sin conexión */
+(function(){
+  'use strict';
+  var est = window.TRIBUNA_ESTADIO;
+  if (est) {
+    document.title = 'Tribuna en el ' + est.corto + ': elige tu puesto viendo el estadio';
+    if (est.acento) document.documentElement.style.setProperty('--naranja', est.acento);
+    var q = function(s){ return document.querySelector(s); };
+    var p = q('.momento p'); if (p) p.textContent = 'Así se vería la boletería del ' + est.nombre + ', ' + est.ciudad + '. Desliza y recórrela.';
+    var t = q('#titular p'); if (t) t.textContent = est.nombre + ' (' + est.ciudad + ', ' + est.estado + '). Toca una zona, escoge tu asiento y mira el terreno desde ahí.';
+    var av = q('#aviso'); if (av) av.innerHTML = '<strong>Demo para el ' + est.corto.replace(/[<>&]/g, '') + '.</strong> Equipos y precios de ejemplo. Aquí no se venden boletos ni se procesan pagos.';
+    var nota = q('[data-nota-estadio]'); if (nota) nota.textContent = 'Las imágenes del recorrido son una recreación genérica generada con inteligencia artificial; la versión final para el ' + est.nombre + ' se hace con la recreación de ese estadio, zona por zona. Los nombres de zona y los precios son de ejemplo.';
+  }
+  // Los enlaces internos conservan el estadio elegido
+  if (est) Array.prototype.forEach.call(document.querySelectorAll('a[data-con-estadio]'), function(a){ a.href = a.getAttribute('href') + (a.getAttribute('href').indexOf('?') < 0 ? '?' : '&') + 'estadio=' + encodeURIComponent(est.clave); });
+  if ('serviceWorker' in navigator && location.protocol === 'https:') window.addEventListener('load', function(){ navigator.serviceWorker.register('/sw.js').catch(function(){}); });
 })();
 </script>
 </body>

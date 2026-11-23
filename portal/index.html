@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="es-VE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal del estadio | Tribuna</title>
+<meta name="description" content="Demo del portal de Tribuna para estadios: ventas, cobros por Pago Móvil, Zelle y USDT, conciliación y cortes en un solo lugar.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#070D1A">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/icono.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" as="font" type="font/woff2" href="/fuentes/titulo-800.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/fuentes/texto-400.woff2" crossorigin>
+<style>
+@font-face{font-family:"Big Shoulders Display";font-weight:800;font-display:swap;src:url(/fuentes/titulo-800.woff2) format("woff2")}
+@font-face{font-family:"Hanken Grotesk";font-weight:400;font-display:swap;src:url(/fuentes/texto-400.woff2) format("woff2")}
+@font-face{font-family:"Hanken Grotesk";font-weight:500;font-display:swap;src:url(/fuentes/texto-500.woff2) format("woff2")}
+@font-face{font-family:"Hanken Grotesk";font-weight:700;font-display:swap;src:url(/fuentes/texto-700.woff2) format("woff2")}
+:root{
+  --noche:#070D1A; --superficie:#0A1222; --tarjeta:#0E1729; --borde:rgba(255,255,255,.12); --linea:rgba(255,255,255,.08);
+  --tinta:#F3F5F1; --suave:#B9C5DA; --tenue:#8492AC; --naranja:#FF8A1F;
+  --pm:#3987e5; --ze:#d95926; --us:#199e70;
+  --bien:#0ca30c; --aviso:#fab219; --mal:#d03b3b;
+  --titulo:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --texto:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{scrollbar-color:#33415E #070D1A}
+body{margin:0;background:var(--noche);color:var(--tinta);font-family:var(--texto);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--naranja);outline-offset:2px}
+[hidden]{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+.marca{display:inline-flex;align-items:center;gap:9px;font-family:var(--titulo);font-weight:800;font-size:24px;line-height:1;text-decoration:none}
+.marca svg{width:34px;height:22px}
+.boton{border:0;border-radius:12px;padding:11px 16px;font-weight:700;background:var(--naranja);color:#0E1F3D;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;transition:background-color .15s ease,transform .15s cubic-bezier(.23,1,.32,1)}
+.boton:active{transform:scale(.97)}
+.boton.claro{background:rgba(255,255,255,.1);color:#fff}
+@media (hover:hover){.boton:hover{background:#FFA24D}.boton.claro:hover{background:rgba(255,255,255,.18)}}
+.boton.chico{min-height:34px;padding:6px 12px;font-size:14px;border-radius:9px}
+
+/* Acceso */
+.acceso{min-height:100svh;display:grid;place-items:center;padding:24px;background:radial-gradient(120% 80% at 50% 0,#13244A 0,var(--noche) 60%)}
+.caja{width:min(440px,100%);background:var(--superficie);border:1px solid var(--borde);border-radius:22px;padding:28px}
+.caja h1{font-family:var(--titulo);font-weight:800;font-size:44px;line-height:.95;margin:22px 0 8px}
+.caja p{color:var(--suave);margin:0 0 18px}
+.campo{display:grid;gap:6px;margin-bottom:16px}
+.campo label{font-weight:700;font-size:14px}
+select{background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
+.letra-chica{font-size:13px;color:var(--tenue);margin:16px 0 0!important}
+.caja .boton{width:100%}
+
+/* Panel */
+.barra{position:sticky;top:0;z-index:20;background:rgba(7,13,26,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--borde)}
+.barra .dentro{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 24px;max-width:1320px;margin:0 auto}
+.barra .estadio{font-weight:700}
+.barra .estadio small{display:block;font-weight:400;color:var(--suave);font-size:13px}
+.barra .der{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.aviso-demo{background:#04070F;color:#C9D4E8;font-size:13px;text-align:center;padding:7px 16px}
+.aviso-demo strong{color:var(--naranja)}
+main{max-width:1320px;margin:0 auto;padding:22px 24px 60px}
+.filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.filtros select{width:auto;min-width:220px}
+.rango{display:inline-flex;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:3px}
+.rango button{background:none;border:0;border-radius:8px;padding:7px 12px;color:var(--suave);font-weight:500}
+.rango button[aria-pressed="true"]{background:rgba(255,255,255,.12);color:#fff;font-weight:700}
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px}
+.tile{background:var(--superficie);border:1px solid var(--borde);border-radius:16px;padding:16px}
+.tile .et{color:var(--suave);font-size:13px}
+.tile .val{font-family:var(--titulo);font-weight:800;font-size:38px;line-height:1;margin:8px 0 4px}
+.tile .det{color:var(--tenue);font-size:13px}
+.rejilla{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-bottom:12px}
+.tarjeta{background:var(--superficie);border:1px solid var(--borde);border-radius:16px;padding:18px;min-width:0}
+.tarjeta h2{font-size:17px;margin:0 0 2px}
+.tarjeta .sub{color:var(--suave);font-size:13px;margin:0 0 14px}
+.cab{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.leyenda{display:flex;gap:14px;flex-wrap:wrap;list-style:none;margin:0 0 10px;padding:0;font-size:13px;color:var(--suave)}
+.leyenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.grafico{position:relative}
+.grafico svg{display:block;width:100%;height:auto;overflow:visible}
+.eje text{fill:var(--tenue);font-size:11px;font-family:var(--texto)}
+.eje line{stroke:var(--linea)}
+.punta{position:absolute;pointer-events:none;background:#fff;color:#0E1F3D;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.35;box-shadow:0 10px 30px rgba(0,0,0,.5);white-space:nowrap;transform:translate(-50%,calc(-100% - 10px));z-index:5}
+.punta b{display:block}
+.punta .f{display:flex;justify-content:space-between;gap:14px}
+.punta .f i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.enlace{background:none;border:0;padding:0;color:var(--suave);text-decoration:underline;text-underline-offset:3px;font-size:13px}
+.tabla-graf{margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:500;color:var(--suave);font-size:13px;padding:8px 10px;border-bottom:1px solid var(--borde);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--linea);vertical-align:middle}
+td.d,th.d{text-align:right;font-variant-numeric:tabular-nums}
+.desliza-x{overflow-x:auto}
+.zonas{display:grid;gap:9px}
+.zona{display:grid;grid-template-columns:minmax(120px,170px) 1fr 44px;gap:10px;align-items:center;font-size:13px}
+.zona .n{color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zona .pista{height:12px;background:rgba(255,255,255,.06);border-radius:0 4px 4px 0;overflow:hidden}
+.zona .pista i{display:block;height:100%;background:var(--pm);border-radius:0 4px 4px 0}
+.zona .v{text-align:right;font-variant-numeric:tabular-nums}
+.metodos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.metodo .fila{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:1px solid var(--linea)}
+.metodo .fila:last-child{border:0}
+.metodo h2{display:flex;align-items:center;gap:8px}
+.metodo h2 i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.proporcion{display:flex;gap:2px;height:8px;margin:12px 0 10px}
+.proporcion span{display:block;height:100%}
+.proporcion span:first-child{border-radius:4px 0 0 4px}
+.proporcion span:last-child{border-radius:0 4px 4px 0}
+.estado{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;white-space:nowrap}
+.estado svg{width:14px;height:14px;flex:none}
+.herramientas{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.herramientas select,.herramientas input{width:auto;min-height:38px;background:var(--tarjeta);border:1px solid var(--borde);border-radius:9px;padding:6px 10px}
+.herramientas input{min-width:200px}
+.vacio{color:var(--suave);padding:18px 10px}
+.plan dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0}
+.plan dt{color:var(--suave)}
+.plan dd{margin:0;font-weight:700;text-align:right}
+.nota{color:var(--tenue);font-size:12.5px;margin:10px 0 0}
+.pie{color:var(--tenue);font-size:13px;max-width:1320px;margin:0 auto;padding:0 24px 40px}
+@media (max-width:1100px){.tiles{grid-template-columns:repeat(2,1fr)}.tiles .tile:first-child{grid-column:span 2}.rejilla{grid-template-columns:1fr}.metodos{grid-template-columns:1fr}}
+@media (max-width:600px){main{padding:16px 12px 48px}.barra .dentro{padding:10px 12px}.tile .val{font-size:32px}.filtros select{min-width:0;width:100%}.herramientas input{min-width:0;flex:1}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="simbolo" viewBox="0 0 709 447"><path fill="#FF8A1F" fill-rule="evenodd" d="M1.2 447.2C0.2 446.5 0.0 431.7 0.2 376.5L0.5 306.6L9.5 305.3C24.4 303.2 33.8 300.0 44.1 293.4C68.9 277.5 84.6 247.5 82.6 219.5C80.6 190.0 63.3 163.7 37.5 150.8C28.2 146.1 13.5 142.0 6.0 142.0C-0.5 142.0 -0.0 147.7 0.0 71.6C0.0 33.6 0.4 1.9 0.8 1.2C1.5 0.2 73.1 0.0 355.6 0.2L709.5 0.5L709.8 69.9C709.9 120.3 709.7 139.7 708.9 140.6C708.3 141.4 705.9 142.0 703.6 142.0C694.1 142.0 679.2 146.4 668.9 152.3C650.1 163.0 637.3 179.2 630.3 201.0C627.8 208.6 627.5 210.9 627.6 223.5C627.6 238.7 628.5 243.2 633.8 255.7C645.2 282.4 668.7 300.5 698.0 305.0C702.1 305.6 706.5 306.4 707.8 306.6L710.0 307.0L710.0 376.3C710.0 428.9 709.7 445.9 708.8 446.8C707.9 447.7 627.9 448.0 355.1 448.0C161.1 448.0 1.9 447.6 1.2 447.2ZM281.8 334.9C282.0 318.2 282.3 313.0 283.4 312.1C284.3 311.3 304.7 311.1 355.6 311.2L426.5 311.5L427.0 334.0L427.5 356.5L436.0 356.8C449.8 357.3 449.0 358.1 449.0 343.5L449.0 331.0L451.8 329.9C464.7 324.9 473.2 317.4 476.8 307.8C478.9 302.3 479.0 300.2 479.2 257.6L479.5 213.1L476.8 210.3C474.4 207.9 473.3 207.6 467.5 207.6C462.5 207.6 460.3 208.1 458.2 209.7L455.5 211.7L455.2 235.1C455.1 248.0 454.8 259.1 454.5 259.9C454.1 261.0 453.5 260.9 451.7 259.3C448.4 256.3 443.5 254.0 440.2 254.0C438.6 254.0 432.4 255.1 426.4 256.4C402.3 261.6 379.8 264.0 355.3 264.0C336.9 264.0 314.0 262.3 301.5 260.0C298.8 259.5 290.1 257.9 282.3 256.4C268.3 253.8 267.9 253.7 263.5 255.5C260.9 256.4 258.4 258.1 257.7 259.1C257.1 260.1 256.2 261.0 255.8 261.0C255.3 261.0 255.0 250.0 255.0 236.6L255.0 212.1L252.4 210.1C249.1 207.5 242.1 206.5 237.5 208.0C230.7 210.2 230.9 208.7 231.2 259.1L231.5 304.5L234.3 310.2C238.6 318.6 250.7 329.0 256.4 329.0C259.5 329.0 260.7 333.2 260.9 344.5C261.1 350.5 261.4 355.8 261.7 356.3C261.9 356.7 266.5 356.9 271.8 356.8L281.5 356.5L281.8 334.9ZM397.0 242.5C402.8 241.7 409.5 240.6 412.0 240.1C414.5 239.5 421.5 238.1 427.7 236.9C433.8 235.7 439.4 234.4 440.1 233.9C441.1 233.3 441.1 227.7 440.1 204.8C437.4 145.2 436.2 123.4 435.5 121.0C433.0 112.0 425.9 102.2 418.7 97.6C408.0 90.9 407.9 90.9 352.4 91.2L302.5 91.5L296.5 94.4C289.5 97.8 280.5 106.6 277.3 113.0C273.9 120.0 273.1 125.8 272.0 150.0C269.8 195.8 269.0 211.8 268.4 222.2L267.7 232.9L270.6 234.1C278.5 237.1 309.7 242.6 327.0 244.0C341.7 245.2 384.9 244.3 397.0 242.5Z"/></symbol></svg>
+
+<!-- Acceso -->
+<section class="acceso" id="acceso" aria-labelledby="acceso-titulo">
+  <form class="caja" id="formAcceso">
+    <a class="marca" href="/" aria-label="Tribuna, inicio"><svg viewBox="0 0 709 447" aria-hidden="true"><use href="#simbolo"/></svg>Tribuna</a>
+    <h1 id="acceso-titulo">Portal del estadio</h1>
+    <p>Ventas, cobros y cortes de tu boletería en un solo lugar. Esta es la cuenta de demostración: los datos son inventados.</p>
+    <div class="campo">
+      <label for="elegirEstadio">Estadio</label>
+      <select id="elegirEstadio"></select>
+    </div>
+    <button class="boton" type="submit">Entrar con la cuenta de demostración</button>
+    <p class="letra-chica">En el portal real cada estadio entra con su correo y un código de un solo uso, y solo ve sus propios datos. Aquí no se pide ninguna clave.</p>
+  </form>
+</section>
+
+<!-- Panel -->
+<div id="panel" hidden>
+  <div class="aviso-demo"><strong>Cuenta de demostración.</strong> Ventas, cobros, referencias y montos son inventados. Nada de esto es dinero real.</div>
+  <header class="barra">
+    <div class="dentro">
+      <a class="marca" href="/" aria-label="Tribuna, inicio"><svg viewBox="0 0 709 447" aria-hidden="true"><use href="#simbolo"/></svg>Tribuna</a>
+      <div class="estadio" id="nombreEstadio"></div>
+      <div class="der">
+        <a class="boton claro chico" id="verDemo" href="/">Ver la taquilla</a>
+        <button class="boton claro chico" type="button" id="salir">Salir</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="filtros">
+      <select id="filtroJuego" aria-label="Juego"></select>
+      <div class="rango" role="group" aria-label="Período">
+        <button type="button" data-dias="7" aria-pressed="false">7 días</button>
+        <button type="button" data-dias="30" aria-pressed="true">30 días</button>
+        <button type="button" data-dias="0" aria-pressed="false">Temporada</button>
+      </div>
+    </div>
+
+    <section class="tiles" id="tiles" aria-label="Resumen"></section>
+
+    <div class="rejilla">
+      <section class="tarjeta" aria-labelledby="t-ventas">
+        <div class="cab">
+          <div><h2 id="t-ventas">Cobrado por día</h2><p class="sub">En dólares, por método de pago</p></div>
+          <button class="enlace" type="button" data-tabla="ventas" aria-expanded="false">Ver como tabla</button>
+        </div>
+        <ul class="leyenda"><li><i style="background:var(--pm)"></i>Pago Móvil</li><li><i style="background:var(--ze)"></i>Zelle</li><li><i style="background:var(--us)"></i>USDT</li></ul>
+        <div class="grafico" id="grafVentas"></div>
+        <div class="tabla-graf desliza-x" id="tablaVentas" hidden></div>
+      </section>
+      <section class="tarjeta" aria-labelledby="t-zonas">
+        <h2 id="t-zonas">Ocupación por zona</h2>
+        <p class="sub" id="subZonas">Boletos vendidos sobre los disponibles</p>
+        <div class="zonas" id="zonas"></div>
+      </section>
+    </div>
+
+    <section class="metodos" id="metodos" aria-label="Conciliación por método"></section>
+
+    <section class="tarjeta" aria-labelledby="t-cobros" style="margin-bottom:12px">
+      <div class="cab">
+        <div><h2 id="t-cobros">Cobros</h2><p class="sub">Cada pago con su referencia. Los que están por verificar esperan que aparezcan en tu banco o billetera.</p></div>
+        <button class="boton claro chico" type="button" id="exportar">Descargar CSV</button>
+      </div>
+      <div class="herramientas">
+        <select id="fEstado" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option value="pendiente">Por verificar</option><option value="confirmado">Confirmados</option><option value="rechazado">Rechazados</option></select>
+        <select id="fMetodo" aria-label="Filtrar por método"><option value="">Todos los métodos</option><option value="pm">Pago Móvil</option><option value="ze">Zelle</option><option value="us">USDT</option></select>
+        <input id="fBuscar" type="search" placeholder="Buscar referencia o boleto" aria-label="Buscar referencia o boleto">
+      </div>
+      <div class="desliza-x"><table id="tablaCobros"></table></div>
+      <p class="nota" id="notaCobros"></p>
+    </section>
+
+    <div class="rejilla">
+      <section class="tarjeta" aria-labelledby="t-cortes">
+        <h2 id="t-cortes">Cortes semanales</h2>
+        <p class="sub">El dinero llega directo a las cuentas del estadio. Tribuna factura cada semana el cargo por servicio que pagaron los compradores.</p>
+        <div class="desliza-x"><table id="tablaCortes"></table></div>
+      </section>
+      <section class="tarjeta plan" aria-labelledby="t-plan">
+        <h2 id="t-plan">Tu plan</h2>
+        <p class="sub">Así se cobra Tribuna en esta demo</p>
+        <dl id="plan"></dl>
+        <p class="nota">Tasa de cambio de ejemplo. En producción se toma la tasa oficial del BCV de cada día. El IGTF del 3 % sobre pagos en divisas se muestra solo como referencia: confirma su tratamiento con tu contador.</p>
+      </section>
+    </div>
+  </main>
+  <p class="pie">Portal de demostración desarrollado por Qiu Agency, de Qiu Capital Group C.A. RIF: J508801920. No está afiliado a ningún equipo, liga ni estadio real.</p>
+</div>
+
+<script src="/estadios.js"></script>
+<script>
+(function(){
+'use strict';
+var EST = window.TRIBUNA_ESTADIOS, $ = function(id){ return document.getElementById(id); };
+var METODOS = {pm:{n:'Pago Móvil', c:'var(--pm)', divisa:false, costo:.015}, ze:{n:'Zelle', c:'var(--ze)', divisa:true, costo:0}, us:{n:'USDT', c:'var(--us)', divisa:true, costo:.01}};
+var CARGO = .06, LICENCIA = 250, TASA = 420; // tasa de ejemplo, Bs por dólar
+var ESTADOS = {
+  confirmado:{n:'Confirmado', c:'var(--bien)', i:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M4.8 8.2l2.1 2.1 4.3-4.5" stroke="#0A1222" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'},
+  pendiente:{n:'Por verificar', c:'var(--aviso)', i:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M8 4.5V8l2.3 1.5" stroke="#0A1222" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>'},
+  rechazado:{n:'Rechazado', c:'var(--mal)', i:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M5.5 5.5l5 5m0-5l-5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>'}
+};
+var IDS = ['sc','vip','cl','pd','pi','ld','li','td','ti','gd','gi'];
+var CUPO = {sc:.10, vip:.03, cl:.06, pd:.09, pi:.09, ld:.11, li:.11, td:.13, ti:.13, gd:.075, gi:.075};
+var RIVALES = ['Corsarios','Halcones','Toros','Marinos','Truenos','Gigantes','Piratas'];
+
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function usd(n, dec){ return '$' + n.toLocaleString('es-VE', {minimumFractionDigits: dec || 0, maximumFractionDigits: dec || 0}); }
+function ent(n){ return Math.round(n).toLocaleString('es-VE'); }
+function pct(n){ return (n * 100).toLocaleString('es-VE', {maximumFractionDigits: 0}) + ' %'; }
+function semilla(s){ var h = 2166136261; for (var k = 0; k < s.length; k++) { h ^= s.charCodeAt(k); h = Math.imul(h, 16777619); } return function(){ h = Math.imul(h ^ h >>> 15, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; }; }
+var DIA = 864e5;
+function hoy(){ var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+function fecha(d){ return d.toLocaleDateString('es-VE', {day:'numeric', month:'short'}); }
+function fechaLarga(d){ return d.toLocaleDateString('es-VE', {weekday:'short', day:'numeric', month:'short'}); }
+
+/* ---------- Datos inventados, siempre los mismos para cada estadio ---------- */
+function generar(clave){
+  var e = EST[clave], r = semilla(clave), H = hoy(), inicio = new Date(2026, 9, 12);
+  if (H - inicio < 20 * DIA) inicio = new Date(H - 45 * DIA);
+  var juegos = [], d = new Date(inicio.getTime() + Math.floor(r() * 3) * DIA), k = 0;
+  while (d <= new Date(H.getTime() + 7 * DIA)) {
+    var fin = d.getDay() === 0 || d.getDay() === 6, clasico = r() < .18;
+    juegos.push({id:'J' + (++k), fecha:new Date(d), rival:RIVALES[Math.floor(r() * RIVALES.length)], demanda:(fin ? .72 : .5) * (clasico ? 1.3 : 1) * (.8 + r() * .35), clasico:clasico});
+    d = new Date(d.getTime() + (r() < .5 ? 2 : 3) * DIA);
+  }
+  var zonas = IDS.map(function(id){ var z = e.zonas[id]; return {id:id, n:z[0], precio:z[1], cupo:Math.round(e.capacidad * CUPO[id]), gusto:.6 + r() * .8}; });
+  var cobros = [], n = 0;
+  juegos.forEach(function(j){
+    var vendidos = {};
+    zonas.forEach(function(z){
+      var ocup = Math.min(.97, j.demanda * z.gusto * (.8 + r() * .3));
+      var onlinePct = .42;
+      var cant = Math.round(z.cupo * ocup * onlinePct);
+      vendidos[z.id] = cant;
+      // Se agrupa en compras de 1 a 6 boletos
+      while (cant > 0) {
+        var b = Math.min(cant, 1 + Math.floor(Math.pow(r(), 1.6) * 6)); cant -= b;
+        var antes = Math.floor(Math.pow(r(), 2.2) * 10), cuando = new Date(j.fecha.getTime() - antes * DIA + Math.floor(r() * 14 + 8) * 36e5 + Math.floor(r() * 3600) * 1000);
+        if (cuando > new Date()) continue;
+        var m = r(), met = m < .55 ? 'pm' : m < .8 ? 'ze' : 'us';
+        var edad = (Date.now() - cuando) / DIA, est = edad < 1.2 && r() < .14 ? 'pendiente' : r() < .018 ? 'rechazado' : 'confirmado';
+        var monto = b * z.precio;
+        cobros.push({id:'TB-' + String(100000 + (++n)).slice(1) + clave.slice(0, 2).toUpperCase(), cuando:cuando, juego:j.id, zona:z.id, boletos:b, metodo:met, monto:monto, cargo:Math.round(monto * CARGO * 100) / 100, estado:est,
+          ref: met === 'pm' ? String(Math.floor(r() * 9e11 + 1e11)).slice(0, 12) : met === 'ze' ? 'ZL' + Math.floor(r() * 9e7 + 1e7) : '0x' + Math.floor(r() * 0xfffffff).toString(16) + '…' + Math.floor(r() * 0xffff).toString(16)});
+      }
+    });
+    j.vendidos = vendidos;
+  });
+  cobros.sort(function(a, b){ return b.cuando - a.cuando; });
+  return {e:e, clave:clave, juegos:juegos, zonas:zonas, cobros:cobros};
+}
+
+/* ---------- Estado ---------- */
+var S = {datos:null, dias:30, juego:'', fEstado:'', fMetodo:'', buscar:'', max:25};
+
+function enRango(c){
+  if (S.juego) return c.juego === S.juego;
+  if (!S.dias) return true;
+  return c.cuando >= new Date(hoy().getTime() - (S.dias - 1) * DIA);
+}
+function cobrosActivos(){ return S.datos.cobros.filter(enRango); }
+
+/* ---------- Resumen ---------- */
+function pintarTiles(lista){
+  var ok = lista.filter(function(c){ return c.estado === 'confirmado'; }), pend = lista.filter(function(c){ return c.estado === 'pendiente'; });
+  var bruto = ok.reduce(function(s, c){ return s + c.monto; }, 0), boletos = ok.reduce(function(s, c){ return s + c.boletos; }, 0);
+  var montoPend = pend.reduce(function(s, c){ return s + c.monto; }, 0);
+  var cargo = ok.reduce(function(s, c){ return s + c.cargo; }, 0);
+  var costo = ok.reduce(function(s, c){ return s + c.monto * METODOS[c.metodo].costo; }, 0);
+  var jugados = S.datos.juegos.filter(function(j){ return j.fecha <= hoy() && (S.juego ? j.id === S.juego : true); });
+  var cap = 0, vend = 0;
+  jugados.forEach(function(j){ S.datos.zonas.forEach(function(z){ cap += z.cupo; vend += j.vendidos[z.id] || 0; }); });
+  var periodo = S.juego ? 'este juego' : S.dias ? 'últimos ' + S.dias + ' días' : 'la temporada';
+  var t = [
+    ['Cobrado y verificado', usd(bruto), ent(boletos) + ' boletos, ' + periodo],
+    ['Ticket promedio', usd(boletos ? bruto / boletos : 0, 2), 'Por boleto vendido en línea'],
+    ['Ocupación en línea', pct(cap ? vend / cap : 0), ent(vend) + ' de ' + ent(cap) + ' puestos en juegos jugados'],
+    ['Por verificar', usd(montoPend), pend.length + (pend.length === 1 ? ' pago espera' : ' pagos esperan') + ' confirmación'],
+    ['Neto para el estadio', usd(bruto - costo), 'Después de ' + usd(costo) + ' en costos de cobro']
+  ];
+  $('tiles').innerHTML = t.map(function(x){ return '<div class="tile"><div class="et">' + x[0] + '</div><div class="val num">' + x[1] + '</div><div class="det">' + x[2] + '</div></div>'; }).join('');
+  return {bruto:bruto, cargo:cargo};
+}
+
+/* ---------- Gráfico de barras apiladas por día ---------- */
+function porDia(lista){
+  var H = hoy(), dias = S.juego ? 10 : S.dias || Math.max(7, Math.ceil((H - S.datos.juegos[0].fecha) / DIA) + 10), filas = [];
+  var desde = S.juego ? new Date(S.datos.juegos.filter(function(j){ return j.id === S.juego; })[0].fecha.getTime() - 9 * DIA) : new Date(H.getTime() - (dias - 1) * DIA);
+  for (var i = 0; i < dias; i++) filas.push({d:new Date(desde.getTime() + i * DIA), pm:0, ze:0, us:0});
+  lista.forEach(function(c){ if (c.estado === 'rechazado') return; var k = Math.floor((new Date(c.cuando).setHours(0,0,0,0) - desde) / DIA); if (filas[k]) filas[k][c.metodo] += c.monto; });
+  return filas;
+}
+function escalaBonita(max){ if (max <= 0) return [1, [0, 1]]; var p = Math.pow(10, Math.floor(Math.log10(max))), paso = [1, 2, 2.5, 5, 10].map(function(m){ return m * p; }).filter(function(s){ return max / s <= 5; })[0]; var top = Math.ceil(max / paso) * paso, t = []; for (var v = 0; v <= top + 1e-9; v += paso) t.push(v); return [top, t]; }
+function pintarVentas(lista){
+  var filas = porDia(lista), W = Math.max(320, Math.round($('grafVentas').clientWidth || 760)), Hh = W < 520 ? 240 : 260, ml = 46, mr = 8, mt = 10, mb = 26, iw = W - ml - mr, ih = Hh - mt - mb;
+  var max = Math.max.apply(null, filas.map(function(f){ return f.pm + f.ze + f.us; })), esc2 = escalaBonita(max), top = esc2[0];
+  var bw = iw / filas.length, ancho = Math.max(2, Math.min(22, bw - 2)), y = function(v){ return mt + ih - v / top * ih; };
+  var h = '<svg viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Cobrado por día y método de pago"><g class="eje">';
+  esc2[1].forEach(function(v){ h += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (ml - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + (v >= 1000 ? '$' + (v / 1000).toLocaleString('es-VE') + ' mil' : '$' + v) + '</text>'; });
+  var cada = Math.ceil(filas.length / (W < 520 ? 4 : 8));
+  filas.forEach(function(f, i){ if (i % cada === 0) h += '<text x="' + (ml + bw * i + bw / 2) + '" y="' + (Hh - 6) + '" text-anchor="middle">' + fecha(f.d) + '</text>'; });
+  h += '</g>';
+  filas.forEach(function(f, i){
+    var x = ml + bw * i + (bw - ancho) / 2, acum = 0, segs = ['pm', 'ze', 'us'].filter(function(m){ return f[m] > 0; });
+    segs.forEach(function(m, k){
+      var y0 = y(acum), y1 = y(acum + f[m]), alto = Math.max(0, y0 - y1 - (k < segs.length - 1 ? 2 : 0)), r = k === segs.length - 1 ? Math.min(4, ancho / 2, alto) : 0;
+      if (alto > 0) h += r ? '<path fill="' + METODOS[m].c + '" d="M' + x + ' ' + y0 + 'V' + (y0 - alto + r) + 'Q' + x + ' ' + (y0 - alto) + ' ' + (x + r) + ' ' + (y0 - alto) + 'H' + (x + ancho - r) + 'Q' + (x + ancho) + ' ' + (y0 - alto) + ' ' + (x + ancho) + ' ' + (y0 - alto + r) + 'V' + y0 + 'Z"/>' : '<rect fill="' + METODOS[m].c + '" x="' + x + '" y="' + (y0 - alto) + '" width="' + ancho + '" height="' + alto + '"/>';
+      acum += f[m];
+    });
+    h += '<rect class="golpe" data-i="' + i + '" x="' + (ml + bw * i) + '" y="' + mt + '" width="' + bw + '" height="' + ih + '" fill="transparent"/>';
+  });
+  h += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="rgba(255,255,255,.3)"/></svg><div class="punta" id="punta" hidden></div>';
+  var g = $('grafVentas'); g.innerHTML = h;
+  var punta = $('punta');
+  function ver(ev){
+    var t = ev.target.closest && ev.target.closest('.golpe'); if (!t) { punta.hidden = true; return; }
+    var f = filas[+t.getAttribute('data-i')], tot = f.pm + f.ze + f.us, caja = g.getBoundingClientRect(), rr = t.getBoundingClientRect();
+    punta.innerHTML = '<b>' + fechaLarga(f.d) + ': ' + usd(tot) + '</b>' + ['pm', 'ze', 'us'].map(function(m){ return '<span class="f"><span><i style="background:' + METODOS[m].c + '"></i>' + METODOS[m].n + '</span><span class="num">' + usd(f[m]) + '</span></span>'; }).join('');
+    punta.style.left = Math.max(90, Math.min(caja.width - 90, rr.left - caja.left + rr.width / 2)) + 'px'; punta.style.top = (rr.top - caja.top + 30) + 'px'; punta.hidden = false;
+  }
+  g.onpointermove = ver; g.onpointerleave = function(){ punta.hidden = true; };
+  $('tablaVentas').innerHTML = '<table><thead><tr><th>Día</th><th class="d">Pago Móvil</th><th class="d">Zelle</th><th class="d">USDT</th><th class="d">Total</th></tr></thead><tbody>' + filas.map(function(f){ return '<tr><td>' + fechaLarga(f.d) + '</td><td class="d">' + usd(f.pm) + '</td><td class="d">' + usd(f.ze) + '</td><td class="d">' + usd(f.us) + '</td><td class="d">' + usd(f.pm + f.ze + f.us) + '</td></tr>'; }).join('') + '</tbody></table>';
+}
+
+/* ---------- Ocupación por zona ---------- */
+function pintarZonas(){
+  var jugados = S.datos.juegos.filter(function(j){ return j.fecha <= hoy() && (S.juego ? j.id === S.juego : true); });
+  if (!S.juego && S.dias) jugados = jugados.filter(function(j){ return j.fecha >= new Date(hoy().getTime() - (S.dias - 1) * DIA); });
+  $('subZonas').textContent = jugados.length ? 'Boletos vendidos en línea sobre el cupo de cada zona, ' + jugados.length + (jugados.length === 1 ? ' juego' : ' juegos') : 'Todavía no hay juegos jugados en este período';
+  $('zonas').innerHTML = S.datos.zonas.slice().sort(function(a, b){ return b.precio - a.precio; }).map(function(z){
+    var cap = z.cupo * jugados.length, v = jugados.reduce(function(s, j){ return s + (j.vendidos[z.id] || 0); }, 0), p = cap ? v / cap : 0;
+    return '<div class="zona" title="' + esc(z.n) + ': ' + ent(v) + ' de ' + ent(cap) + '"><span class="n">' + esc(z.n) + ' · $' + z.precio + '</span><span class="pista"><i style="width:' + (p * 100).toFixed(1) + '%"></i></span><span class="v">' + pct(p) + '</span></div>';
+  }).join('');
+}
+
+/* ---------- Conciliación por método ---------- */
+function pintarMetodos(lista){
+  $('metodos').innerHTML = ['pm', 'ze', 'us'].map(function(m){
+    var l = lista.filter(function(c){ return c.metodo === m; }), sum = function(est){ return l.filter(function(c){ return c.estado === est; }).reduce(function(s, c){ return s + c.monto; }, 0); };
+    var ok = sum('confirmado'), pe = sum('pendiente'), re = sum('rechazado'), tot = ok + pe + re || 1, M = METODOS[m];
+    var extra = M.divisa ? '<div class="fila"><span>IGTF referencial (3 %)</span><span class="num">' + usd(ok * .03, 2) + '</span></div>' : '<div class="fila"><span>En bolívares (tasa de ejemplo)</span><span class="num">Bs ' + ent(ok * TASA) + '</span></div>';
+    return '<section class="tarjeta metodo"><h2><i style="background:' + M.c + '"></i>' + M.n + '</h2><p class="sub">' + l.length + ' pagos en el período</p>' +
+      '<div class="proporcion" aria-hidden="true"><span style="flex:' + ok / tot + ';background:var(--bien)"></span><span style="flex:' + pe / tot + ';background:var(--aviso)"></span><span style="flex:' + re / tot + ';background:var(--mal)"></span></div>' +
+      '<div class="fila"><span class="estado" style="color:var(--bien)">' + ESTADOS.confirmado.i + '<span style="color:var(--tinta)">Confirmado</span></span><span class="num">' + usd(ok) + '</span></div>' +
+      '<div class="fila"><span class="estado" style="color:var(--aviso)">' + ESTADOS.pendiente.i + '<span style="color:var(--tinta)">Por verificar</span></span><span class="num">' + usd(pe) + '</span></div>' +
+      '<div class="fila"><span class="estado" style="color:var(--mal)">' + ESTADOS.rechazado.i + '<span style="color:var(--tinta)">Rechazado</span></span><span class="num">' + usd(re) + '</span></div>' + extra + '</section>';
+  }).join('');
+}
+
+/* ---------- Tabla de cobros ---------- */
+function zonaN(id){ for (var k = 0; k < S.datos.zonas.length; k++) if (S.datos.zonas[k].id === id) return S.datos.zonas[k].n; return id; }
+function juegoN(id){ var j = S.datos.juegos.filter(function(x){ return x.id === id; })[0]; return j ? 'vs ' + j.rival + ', ' + fecha(j.fecha) : id; }
+function filtrados(lista){
+  var q = S.buscar.trim().toLowerCase();
+  return lista.filter(function(c){ return (!S.fEstado || c.estado === S.fEstado) && (!S.fMetodo || c.metodo === S.fMetodo) && (!q || c.ref.toLowerCase().indexOf(q) >= 0 || c.id.toLowerCase().indexOf(q) >= 0); });
+}
+function pintarCobros(lista){
+  var l = filtrados(lista), MAXF = S.max;
+  var h = '<thead><tr><th>Boleto</th><th>Fecha</th><th>Juego</th><th>Zona</th><th class="d">Boletos</th><th>Método</th><th>Referencia</th><th class="d">Monto</th><th>Estado</th><th><span class="sr" style="position:absolute;left:-9999px">Acción</span></th></tr></thead><tbody>';
+  if (!l.length) h += '<tr><td colspan="10" class="vacio">No hay cobros con estos filtros.</td></tr>';
+  l.slice(0, MAXF).forEach(function(c){
+    var E2 = ESTADOS[c.estado];
+    h += '<tr><td class="num">' + c.id + '</td><td>' + c.cuando.toLocaleString('es-VE', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit'}) + '</td><td>' + esc(juegoN(c.juego)) + '</td><td>' + esc(zonaN(c.zona)) + '</td><td class="d">' + c.boletos + '</td><td>' + METODOS[c.metodo].n + '</td><td class="num">' + c.ref + '</td><td class="d">' + usd(c.monto) + '</td>' +
+      '<td><span class="estado" style="color:' + E2.c + '">' + E2.i + '<span style="color:var(--tinta)">' + E2.n + '</span></span></td><td>' + (c.estado === 'pendiente' ? '<button class="boton claro chico" type="button" data-verificar="' + c.id + '">Marcar verificado</button>' : '') + '</td></tr>';
+  });
+  $('tablaCobros').innerHTML = h + '</tbody>';
+  $('notaCobros').innerHTML = l.length > MAXF ? 'Se muestran los ' + MAXF + ' más recientes de ' + ent(l.length) + '. El CSV los incluye todos. <button class="enlace" type="button" id="masCobros">Mostrar 25 más</button>' : ent(l.length) + (l.length === 1 ? ' cobro.' : ' cobros.');
+}
+
+/* ---------- Cortes semanales y plan ---------- */
+function pintarCortes(){
+  var H = hoy(), lunes = new Date(H.getTime() - ((H.getDay() + 6) % 7) * DIA), filas = [];
+  for (var s = 0; s < 6; s++) {
+    var desde = new Date(lunes.getTime() - s * 7 * DIA), hasta = new Date(desde.getTime() + 7 * DIA);
+    var l = S.datos.cobros.filter(function(c){ return c.estado === 'confirmado' && c.cuando >= desde && c.cuando < hasta; });
+    var bruto = l.reduce(function(a, c){ return a + c.monto; }, 0), cargo = l.reduce(function(a, c){ return a + c.cargo; }, 0);
+    filas.push({desde:desde, hasta:new Date(hasta.getTime() - DIA), bruto:bruto, cargo:cargo, boletos:l.reduce(function(a, c){ return a + c.boletos; }, 0), estado: s === 0 ? 'abierto' : s === 1 ? 'facturado' : 'pagado'});
+  }
+  var et = {abierto:['Semana en curso', 'var(--suave)'], facturado:['Factura emitida', 'var(--aviso)'], pagado:['Pagada', 'var(--bien)']};
+  $('tablaCortes').innerHTML = '<thead><tr><th>Semana</th><th class="d">Boletos</th><th class="d">Cobrado</th><th class="d">Cargo por servicio</th><th>Estado</th></tr></thead><tbody>' + filas.map(function(f){
+    return '<tr><td>' + fecha(f.desde) + ' – ' + fecha(f.hasta) + '</td><td class="d">' + ent(f.boletos) + '</td><td class="d">' + usd(f.bruto) + '</td><td class="d">' + usd(f.cargo, 2) + '</td><td><span style="color:' + et[f.estado][1] + '">●</span> ' + et[f.estado][0] + '</td></tr>';
+  }).join('') + '</tbody>';
+}
+function pintarPlan(tot){
+  $('plan').innerHTML = [
+    ['Plan', 'Estadio'],
+    ['Licencia del portal', usd(LICENCIA) + ' al mes'],
+    ['Cargo por servicio', pct(CARGO) + ' por boleto, lo paga el comprador'],
+    ['Cargo cobrado en el período', usd(tot.cargo, 2)],
+    ['Recreación del estadio', 'Pago único al arrancar'],
+    ['Dónde llega el dinero', 'Cuentas del estadio']
+  ].map(function(x){ return '<dt>' + x[0] + '</dt><dd>' + x[1] + '</dd>'; }).join('');
+}
+
+/* ---------- Pintar todo ---------- */
+function pintar(){
+  var l = cobrosActivos();
+  var tot = pintarTiles(l); pintarVentas(l); S.ultima = l; pintarZonas(); pintarMetodos(l); pintarCobros(l); pintarCortes(); pintarPlan(tot);
+}
+function entrar(clave){
+  S.datos = generar(clave); S.juego = '';
+  var e = S.datos.e;
+  $('nombreEstadio').innerHTML = esc(e.nombre) + '<small>' + esc(e.ciudad + ', ' + e.estado) + ' · capacidad ' + ent(e.capacidad) + '</small>';
+  $('verDemo').href = '/?estadio=' + encodeURIComponent(clave);
+  document.documentElement.style.setProperty('--naranja', e.acento || '#FF8A1F');
+  document.title = 'Portal: ' + e.corto + ' | Tribuna';
+  $('filtroJuego').innerHTML = '<option value="">Todos los juegos</option>' + S.datos.juegos.slice().reverse().map(function(j){ return '<option value="' + j.id + '">' + (j.fecha > hoy() ? 'Próximo: ' : '') + 'vs ' + j.rival + ', ' + fechaLarga(j.fecha) + (j.clasico ? ' (clásico)' : '') + '</option>'; }).join('');
+  $('acceso').hidden = true; $('panel').hidden = false;
+  try { history.replaceState(null, '', '?estadio=' + encodeURIComponent(clave)); sessionStorage.setItem('tribuna-portal', clave); } catch (e2) {}
+  pintar(); window.scrollTo(0, 0);
+}
+
+/* ---------- Eventos ---------- */
+var anchoPrevio = 0; window.addEventListener('resize', function(){ var w = $('grafVentas').clientWidth; if (S.ultima && Math.abs(w - anchoPrevio) > 40) { anchoPrevio = w; pintarVentas(S.ultima); } });
+var sel = $('elegirEstadio');
+sel.innerHTML = Object.keys(EST).map(function(k){ return '<option value="' + k + '">' + esc(EST[k].nombre) + ' (' + esc(EST[k].ciudad) + ')</option>'; }).join('');
+var pedido = window.TRIBUNA_ESTADIO ? window.TRIBUNA_ESTADIO.clave : null, guardado = null;
+try { guardado = sessionStorage.getItem('tribuna-portal'); } catch (e3) {}
+if (pedido) sel.value = pedido;
+$('formAcceso').addEventListener('submit', function(ev){ ev.preventDefault(); entrar(sel.value); });
+if (guardado && EST[guardado] && (!pedido || pedido === guardado)) entrar(guardado);
+$('salir').addEventListener('click', function(){ try { sessionStorage.removeItem('tribuna-portal'); } catch (e4) {} $('panel').hidden = true; $('acceso').hidden = false; sel.focus(); });
+document.querySelector('.rango').addEventListener('click', function(ev){
+  var b = ev.target.closest('button'); if (!b) return;
+  S.dias = +b.getAttribute('data-dias'); S.juego = ''; $('filtroJuego').value = '';
+  Array.prototype.forEach.call(this.querySelectorAll('button'), function(x){ x.setAttribute('aria-pressed', x === b); });
+  pintar();
+});
+$('filtroJuego').addEventListener('change', function(){ S.juego = this.value; pintar(); });
+$('fEstado').addEventListener('change', function(){ S.fEstado = this.value; pintarCobros(cobrosActivos()); });
+$('fMetodo').addEventListener('change', function(){ S.fMetodo = this.value; pintarCobros(cobrosActivos()); });
+$('fBuscar').addEventListener('input', function(){ S.buscar = this.value; pintarCobros(cobrosActivos()); });
+$('notaCobros').addEventListener('click', function(ev){ if (ev.target.id === 'masCobros') { S.max += 25; pintarCobros(cobrosActivos()); } });
+$('tablaCobros').addEventListener('click', function(ev){
+  var b = ev.target.closest('[data-verificar]'); if (!b) return;
+  var id = b.getAttribute('data-verificar');
+  S.datos.cobros.forEach(function(c){ if (c.id === id) c.estado = 'confirmado'; });
+  pintar();
+});
+document.querySelector('[data-tabla="ventas"]').addEventListener('click', function(){
+  var t = $('tablaVentas'), abierta = t.hidden; t.hidden = !abierta; this.setAttribute('aria-expanded', abierta); this.textContent = abierta ? 'Ocultar tabla' : 'Ver como tabla';
+});
+$('exportar').addEventListener('click', function(){
+  var l = filtrados(cobrosActivos()), filas = [['boleto', 'fecha', 'juego', 'zona', 'boletos', 'metodo', 'referencia', 'monto_usd', 'cargo_servicio_usd', 'estado']];
+  l.forEach(function(c){ filas.push([c.id, c.cuando.toISOString(), juegoN(c.juego), zonaN(c.zona), c.boletos, METODOS[c.metodo].n, c.ref, c.monto, c.cargo, ESTADOS[c.estado].n]); });
+  var csv = '﻿' + filas.map(function(f){ return f.map(function(v){ v = String(v); return /[",;\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n');
+  var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'cobros-' + S.datos.clave + '-demo.csv'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+});
+})();
+</script>
+</body>
+</html>

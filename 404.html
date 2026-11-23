@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Página no encontrada | Tribuna</title>
+<script>
+/* Rutas cortas por estadio: /monumental lleva a /?estadio=monumental (GitHub Pages sirve esta página para rutas desconocidas) */
+(function(){
+  var m = location.pathname.replace(/\/+$/, '').match(/^\/([a-z0-9-]+)$/);
+  var claves = ['monumental','luis-aparicio','antonio-herrera','jose-bernardo-perez','chico-carrasquel','nueva-esparta','la-guaira','jose-perez-colmenares'];
+  if (m && claves.indexOf(m[1]) >= 0) location.replace('/?estadio=' + m[1] + location.hash);
+})();
+</script>
 <meta name="description" content="Esta página no existe. Vuelve al inicio de Tribuna, la demo de boletería inmersiva de Qiu Agency.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#070D1A">

@@ -1,0 +1,73 @@
+name: Tribuna - aplicar cambios e imagenes HD
+
+# Aplica herramientas/cambios.patch (si existe) y genera los cuadros base, los cuadros HD
+# reescalados y las fotos HD de la taquilla. Sube el resultado a la misma rama.
+on:
+  push:
+    paths:
+      - 'herramientas/cambios.patch'
+      - '.github/workflows/tribuna-imagenes.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  imagenes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Aplicar cambios de texto
+        run: |
+          if [ -f herramientas/cambios.patch ]; then
+            git apply --whitespace=nowarn herramientas/cambios.patch
+            git rm -q --cached herramientas/cambios.patch
+            rm herramientas/cambios.patch
+            git rm -q --ignore-unmatch escena.js vista-home.webp vista-lateral.webp vista-vip.webp vista-jardin.webp asiento.webp
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar dependencias y modelo
+        run: |
+          pip install -q ncnn numpy pillow
+          python -c "import PIL.features as f; assert f.check('avif'), 'Pillow sin AVIF'"
+          mkdir -p /tmp/modelos
+          for e in param bin; do
+            curl -sSfL -o /tmp/modelos/upscayl-lite-4x.$e "https://raw.githubusercontent.com/upscayl/upscayl/main/resources/models/upscayl-lite-4x.$e"
+          done
+
+      - name: Reescalar cuadros y fotos (Real-ESRGAN, CPU)
+        run: |
+          mkdir -p /tmp/hd /tmp/fotos
+          ls cuadros/[0-9][0-9][0-9].webp | xargs -P 2 -I{} sh -c 'python3 herramientas/escalar.py /tmp/modelos/upscayl-lite-4x {} /tmp/hd/$(basename {} .webp).png'
+          for n in aereo-w aereo asientos-w palco-w vista-home-w vista-lateral-w vista-vip-w vista-jardin-w; do
+            python3 herramientas/escalar.py /tmp/modelos/upscayl-lite-4x $n.webp /tmp/fotos/$n.png
+          done
+          ls /tmp/hd | wc -l
+
+      - name: Generar juegos de cuadros, fotos HD y pagina de estadios
+        run: |
+          python3 herramientas/preparar_cuadros.py /tmp/hd
+          python3 - <<'EOF'
+          from PIL import Image
+          for n in ['aereo-w','aereo','asientos-w','palco-w','vista-home-w','vista-lateral-w','vista-vip-w','vista-jardin-w']:
+              im = Image.open(f'/tmp/fotos/{n}.png').convert('RGB'); w, h = im.size
+              im.resize((2048, round(2048 * h / w)), Image.LANCZOS).save(f'{n}-hd.webp', quality=80, method=6)
+          EOF
+          node herramientas/generar_estadios.js .
+
+      - name: Subir resultado
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Tribuna: cambios aplicados, cuadros HD y fotos HD generados" || echo "Sin cambios"
+          git push

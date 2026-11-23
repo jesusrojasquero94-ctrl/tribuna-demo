@@ -9,6 +9,10 @@
 <meta name="theme-color" content="#070D1A">
 <meta property="og:title" content="Tribuna, elige tu puesto viendo el estadio">
 <meta property="og:description" content="Demo de concepto de Qiu Agency para estadios venezolanos.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tribuna.qiuagency.com/">
+<meta property="og:image" content="https://tribuna.qiuagency.com/aereo-w.webp">
+<link rel="canonical" href="https://tribuna.qiuagency.com/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E1F3D'/%3E%3Crect x='9' y='9' width='14' height='14' fill='%23FF8A1F' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
 <link rel="preload" as="image" href="aereo-w.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,20 +21,51 @@
 <style>
 :root{
   --noche:#070D1A; --tinta:#0E1F3D; --cristal:rgba(8,15,31,.74); --borde:rgba(255,255,255,.16);
-  --cal:#F3F5F1; --suave:#B9C5DA; --naranja:#FF8A1F; --panel-w:340px;
+  --cal:#F3F5F1; --suave:#B9C5DA; --naranja:#FF8A1F; --panel-w:340px; --aviso-h:34px;
+  --sale:cubic-bezier(.23,1,.32,1);
   --titulo:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
   --texto:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scrollbar-color:#33415E #070D1A}
+::selection{background:var(--naranja);color:var(--tinta)}
 body{margin:0;background:var(--noche);color:var(--cal);font-family:var(--texto);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;cursor:pointer}
 a{color:inherit}
 :focus-visible{outline:3px solid var(--naranja);outline-offset:2px}
 [hidden]{display:none!important}
+.salto{position:absolute;left:12px;top:-60px;z-index:60;background:var(--naranja);color:var(--tinta);font-weight:700;padding:10px 16px;border-radius:10px;text-decoration:none}
+.salto:focus{top:8px}
 
-.pantalla{height:100svh;min-height:560px;display:flex;flex-direction:column}
-.aviso{flex:none;background:#04070F;color:#C9D4E8;font-size:13px;line-height:1.25;padding:8px 16px;text-align:center}
+.aviso{position:sticky;top:0;z-index:50;background:#04070F;color:#C9D4E8;font-size:13px;line-height:1.25;padding:8px 16px;text-align:center}
+.pantalla{height:calc(100svh - var(--aviso-h));min-height:560px;display:flex;flex-direction:column;scroll-margin-top:var(--aviso-h)}
+
+/* Recorrido 3D guiado por el scroll */
+.historia{position:relative;height:600vh;background:#0B1326}
+.fijo{position:sticky;top:var(--aviso-h);height:calc(100svh - var(--aviso-h));overflow:hidden;background:#0d1730 url(aereo-w.webp) center/cover}
+#escena3d{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .9s ease}
+.con3d #escena3d{opacity:1}
+.sombra{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(4,7,15,.66) 0,rgba(4,7,15,.28) 36%,rgba(4,7,15,0) 60%),linear-gradient(180deg,rgba(4,7,15,.5) 0,rgba(4,7,15,0) 20%,rgba(4,7,15,0) 72%,rgba(4,7,15,.55) 100%)}
+.cabeza{position:absolute;left:20px;right:20px;top:14px;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cabeza .ir{padding:10px 18px;font-size:15px;font-weight:700;text-decoration:none;transition:background-color .15s ease,transform .15s var(--sale)}
+.momentos{position:absolute;left:clamp(20px,5vw,72px);bottom:clamp(30px,10vh,104px);width:min(560px,calc(100% - 40px));z-index:3}
+.momento{position:absolute;left:0;bottom:0;width:100%;opacity:0;visibility:hidden;text-shadow:0 2px 24px rgba(0,0,0,.55);will-change:opacity,transform}
+.momento:first-child{opacity:1;visibility:visible}
+.momento h1,.momento h2{font-family:var(--titulo);font-weight:800;font-size:clamp(46px,6.4vw,96px);line-height:.92;letter-spacing:-.005em;margin:0 0 14px;text-wrap:balance}
+.momento p{margin:0;font-size:clamp(17px,1.35vw,20px);max-width:38ch;color:#EDF1F9}
+.momento .boton{margin-top:20px;text-shadow:none}
+.desliza{position:absolute;left:50%;bottom:18px;z-index:3;transform:translateX(-50%);font-size:13px;color:#DCE4F2;display:flex;flex-direction:column;align-items:center;gap:6px;transition:opacity .3s ease;pointer-events:none}
+.desliza::after{content:"";width:1px;height:26px;background:linear-gradient(#fff,rgba(255,255,255,0));animation:baja 1.8s ease-in-out infinite}
+@keyframes baja{0%{transform:scaleY(.2);transform-origin:top}60%{transform:scaleY(1);transform-origin:top}100%{transform:scaleY(1);transform-origin:top;opacity:0}}
+.avanzo .desliza{opacity:0}
+/* Sin WebGL, sin script o con movimiento reducido: todo el contenido en reposo */
+.historia.sin3d{height:auto}
+.sin3d .fijo{position:relative;top:auto;height:auto;min-height:calc(100svh - var(--aviso-h));padding:110px 0 64px}
+.sin3d .fijo::before{content:"";position:absolute;inset:0;background:rgba(4,7,15,.62)}
+.sin3d #escena3d,.sin3d .desliza,.sin3d .sombra{display:none}
+.sin3d .momentos{position:relative;left:auto;bottom:auto;margin:0 clamp(20px,5vw,72px);display:grid;gap:44px}
+.sin3d .momento{position:relative;opacity:1;visibility:visible}
+.sin3d .momento h2{font-size:clamp(32px,4.2vw,52px)}
 .aviso strong{color:var(--naranja)}
 .escenario{position:relative;flex:1;min-height:0;overflow:hidden;background:#0B1326}
 .marco{position:absolute;inset:0;overflow:hidden}
@@ -60,7 +95,7 @@ a{color:inherit}
 .ruta span{color:#6F7E9A}
 
 .titular{position:absolute;left:28px;bottom:26px;z-index:3;max-width:min(360px,24vw);text-shadow:0 2px 22px rgba(0,0,0,.6);pointer-events:none}
-.titular h1{font-family:var(--titulo);font-weight:800;font-size:clamp(34px,3.9vw,64px);line-height:.94;margin:0 0 10px}
+.titular h2{font-family:var(--titulo);font-weight:800;font-size:clamp(34px,3.9vw,64px);line-height:.94;margin:0 0 10px}
 .titular p{margin:0;font-size:16px;color:#E9EEF8;max-width:34ch}
 .pista{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:3;margin:0;padding:8px 16px;font-size:14px;white-space:nowrap;pointer-events:none}
 .nivel-1 .pista{left:calc((100% - var(--panel-w) - 20px)/2)}
@@ -93,8 +128,9 @@ a{color:inherit}
 .total b{font-family:var(--titulo);font-weight:800;font-size:40px;line-height:1}
 .nota{font-size:13px;color:var(--suave);margin:6px 0 0}
 .acciones{display:grid;gap:8px;margin-top:14px}
-.boton{border:0;border-radius:12px;padding:13px 18px;font-weight:700;font-size:16px;background:var(--naranja);color:var(--tinta);text-align:center;text-decoration:none;display:inline-block}
-.boton:hover{background:#FFA24D}
+.boton{border:0;border-radius:12px;padding:13px 18px;font-weight:700;font-size:16px;background:var(--naranja);color:var(--tinta);text-align:center;text-decoration:none;display:inline-block;transition:background-color .15s ease,transform .15s var(--sale)}
+.boton:active,.cabeza .ir:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){.boton:hover{background:#FFA24D}.cabeza .ir:hover{background:rgba(255,255,255,.2)}}
 .boton.claro{background:rgba(255,255,255,.14);color:#fff}
 .boton.claro:hover{background:rgba(255,255,255,.24)}
 .boton[disabled]{opacity:.4;cursor:not-allowed}
@@ -170,6 +206,10 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
 /* Teléfonos y pantallas verticales: todo apilado */
 @media (max-width:900px),(orientation:portrait){
   .pantalla{height:auto;min-height:0;display:block}
+  .momentos{bottom:clamp(64px,12vh,110px)}
+  .ruta button{min-height:40px}
+  .elegidos button{min-height:40px;padding:4px 10px}
+  .cabeza .ir{min-height:44px;display:inline-flex;align-items:center}
   .escenario{overflow:visible;background:var(--noche)}
   .arriba{position:static;padding:12px 14px 10px}
   .marco{position:relative;inset:auto;width:100%;aspect-ratio:1024/880}
@@ -177,7 +217,9 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
   .nivel-1 .escena{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
   .velo{display:none}
   .titular{position:static;padding:18px 16px 2px;max-width:none;text-shadow:none;pointer-events:auto}
-  .titular h1{font-size:clamp(36px,10vw,52px)}
+  .titular h2{font-size:clamp(36px,10vw,52px)}
+  .momento h1,.momento h2{font-size:clamp(40px,12vw,64px)}
+  .cabeza{left:12px;right:12px}
   .titular p{font-size:17px}
   .pista,.nivel-1 .pista{left:10px;bottom:10px;transform:none;font-size:13px;padding:6px 12px}
   .panel{position:static;width:auto;margin:14px 12px 20px;overflow:visible}
@@ -189,14 +231,38 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  #lienzo,#lienzo.entra,#lienzo.vuelve,.zona,.mini img{animation:none;transition:none}
+  #lienzo,#lienzo.entra,#lienzo.vuelve,.zona,.mini img,.desliza::after{animation:none;transition:none}
 }
 </style>
 </head>
 <body>
-<div class="pantalla">
-  <div class="aviso"><strong>Demo de concepto.</strong> Los equipos, el partido y los precios son inventados. Aquí no se venden boletos ni se procesan pagos.</div>
+<a class="salto" href="#taquilla">Saltar a la taquilla</a>
+<div class="aviso" id="aviso"><strong>Demo de concepto.</strong> Los equipos, el partido y los precios son inventados. Aquí no se venden boletos ni se procesan pagos.</div>
 
+<header class="historia sin3d" id="historia">
+  <div class="fijo">
+    <canvas id="escena3d" aria-hidden="true"></canvas>
+    <div class="sombra"></div>
+    <div class="cabeza">
+      <a class="chip marca" href="#" aria-label="Tribuna, inicio">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0E1F3D"/><rect x="9" y="9" width="14" height="14" fill="#FF8A1F" transform="rotate(45 16 16)"/></svg>
+        Tribuna
+      </a>
+      <a class="chip ir" href="#taquilla">Abrir la taquilla</a>
+    </div>
+    <div class="momentos">
+      <div class="momento"><h1>Elige tu puesto viendo el estadio.</h1><p>Boletería inmersiva para estadios venezolanos. Desliza y recórrela.</p></div>
+      <div class="momento"><h2>Toca una zona.</h2><p>Cada zona muestra su precio y los asientos que le quedan.</p></div>
+      <div class="momento"><h2>Escoge tu asiento exacto.</h2><p>Fila y número, sobre las butacas de verdad.</p></div>
+      <div class="momento"><h2>Mira el terreno desde ahí.</h2><p>Antes de pagar ves lo mismo que vas a ver el día del juego.</p></div>
+      <div class="momento"><h2>Paga como siempre pagas.</h2><p>Pago Móvil, Zelle o USDT. El boleto llega a tu WhatsApp con un código QR.</p></div>
+      <div class="momento"><h2>Ahora pruébalo tú.</h2><p>La taquilla de demostración está justo debajo.</p><a class="boton" href="#taquilla">Abrir la taquilla</a></div>
+    </div>
+    <div class="desliza" aria-hidden="true">Desliza</div>
+  </div>
+</header>
+
+<div class="pantalla" id="taquilla">
   <main class="escenario nivel-0" id="escenario" aria-label="Taquilla">
     <div class="arriba">
       <a class="chip marca" href="#" aria-label="Tribuna, inicio">
@@ -214,8 +280,8 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
       <div class="globo" id="globo" hidden></div>
     </div>
     <div class="titular" id="titular">
-      <h1>Elige tu puesto viendo el estadio.</h1>
-      <p>Toca una zona, escoge tu asiento y mira el terreno desde ahí antes de pagar.</p>
+      <h2>La taquilla, en vivo.</h2>
+      <p>Toca una zona, escoge tu asiento y mira el terreno desde ahí.</p>
     </div>
     <aside class="panel" id="panel" aria-live="polite"></aside>
     <div class="chip barra-vista" id="barraVista" hidden></div>
@@ -260,6 +326,19 @@ dialog::backdrop{background:rgba(3,6,14,.78)}
 
 <dialog id="dialogo" aria-labelledby="pago-titulo"><div class="pago" id="pago"></div></dialog>
 
+<script>
+(function(){var a=document.getElementById('aviso');function m(){document.documentElement.style.setProperty('--aviso-h',a.offsetHeight+'px')}m();window.addEventListener('resize',m)})();
+</script>
+<script type="module">
+const h=document.getElementById('historia');
+const reducido=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let gl=false;try{const c=document.createElement('canvas');gl=!!(c.getContext('webgl2')||c.getContext('webgl'))}catch(e){}
+const flojo=matchMedia('(max-width: 900px)').matches&&(navigator.hardwareConcurrency||4)<4;
+if(!reducido&&gl&&!flojo){
+  h.classList.remove('sin3d');
+  import('./escena.js').then(m=>{if(!m.montar())h.classList.add('sin3d')}).catch(()=>h.classList.add('sin3d'));
+}
+</script>
 <script>
 (function(){
 'use strict';
